@@ -135,8 +135,9 @@ textarea{min-height:110px;font-family:ui-monospace,Menlo,monospace;font-size:12p
 .sb-fast{margin-top:8px;text-align:center;font-size:.85rem;font-weight:700;letter-spacing:.06em;color:#fff;border-top:1px solid rgba(var(--g),.18);padding-top:6px}
 .sec{padding:0}
 .sechead{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;color:var(--text);padding:15px 14px;cursor:pointer;text-align:left}
-.sechead .st{font-weight:700;letter-spacing:.2em;font-size:.9rem;color:#fff;text-shadow:0 0 8px var(--glow)}
-.sechead .sm{flex:1;text-align:right;font-size:.8rem;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sechead .st{font-weight:700;letter-spacing:.15em;font-size:.9rem;color:#fff;text-shadow:0 0 8px var(--glow);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:375px){.sechead .st{letter-spacing:.09em;font-size:.86rem}.sechead{gap:8px}}
+.sechead .sm{flex:1 0 auto;text-align:right;font-size:.8rem;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sechead .chev{transition:transform .2s;color:var(--glow);font-size:.9rem}
 .sec.open .chev{transform:rotate(180deg)}
 .secbody{display:none;padding:0 14px 14px;border-top:1px solid rgba(var(--g),.2)}
@@ -275,7 +276,9 @@ body.shake #view{animation:shake .5s cubic-bezier(.36,.07,.19,.97) both}
 .gear{position:absolute;top:calc(env(safe-area-inset-top) + 6px);right:8px;z-index:3;width:36px;height:36px;padding:0;border-radius:50%;background:rgba(3,7,16,.7);border:1px solid var(--line);color:#fff;font-size:1.15rem;line-height:1;cursor:pointer}
 #view.hasgear{padding-top:calc(env(safe-area-inset-top) + 50px)}
 .gear.in{position:static;width:30px;height:30px;font-size:1rem;align-self:start}
-.sb-grid{grid-template-columns:1.15fr .9fr 1.25fr .8fr 30px}
+.sb-grid{grid-template-columns:.62fr 1fr 1.35fr .85fr 30px;gap:6px}
+.sb-grid b,.sb-rate b{font-size:1.12rem}
+@media (max-width:375px){.sb-grid b,.sb-rate b{font-size:1rem}.sb-grid span,.sb-rate span{letter-spacing:.1em}}
 .sb-rate{background:none;border:0;padding:0;margin:0;color:inherit;text-align:left;font-family:inherit;cursor:pointer;min-width:0}
 .sb-rate span{display:block;font-size:.66rem;letter-spacing:.16em;color:var(--muted);font-weight:700}
 .sb-rate b{display:block;font-size:1.2rem;line-height:1.15;white-space:nowrap}
@@ -1583,7 +1586,7 @@ function logBanner(){
   return `<div class="sumbar"><div class="sb-grid">
     <div><span>LEVEL</span><b>${state.level}</b><div class="bar thin"><i style="width:${Math.min(100,state.xp/need*100)}%"></i></div></div>
     <div><span>TODAY</span><b class="${d.xp+(d.extraXP||0)<0?'bad':d.xp+(d.bonus||0)+(d.extraXP||0)>0?'good':''}">${fmtXP(r1(d.xp + (d.bonus||0) + (d.extraXP||0)))}</b><small>XP</small></div>
-    <div><span>QUEST</span><b class="${qok?'good':''}">${q?`${questShow(q.id,qv)}/${questShow(q.id,q.target)}`:'—'}${qok?' ✓':''}</b><small>${qa?esc(q.id==='fast'?'Fasting':qa.label):''}</small></div>
+    <div><span>QUEST</span><b class="${qok?'good':''}">${!q?'—':qok?`${questShow(q.id,qv)} ✓`:`${questShow(q.id,qv)}/${questShow(q.id,q.target)}`}</b><small>${qa?esc(q.id==='fast'?'Fasting':qa.label):''}</small></div>
     <button class="sb-rate" id="rateInfo"><span>RATE</span><b class="${m>1?'good':m<1?'bad':''}">×${m.toFixed(2)}</b><small>XP · info</small></button>
     <button class="gear in" data-goto="settings" aria-label="Settings">⚙</button>
   </div>${state.fast?`<div class="sb-fast" id="sbFast">FASTING ${fmtHM(fastHours())}</div>`:''}${state.boss.fight?(()=>{ const f=state.boss.fight, b=bossInfo(f.n); return f.won ? `<div class="sb-fast" style="color:var(--gold)">⚔ ${esc(b.name.toUpperCase())} · OVERKILL ${Math.floor(f.dmg/b.hp*100)}%</div>` : `<div class="sb-fast" style="color:#ff9fb0">⚔ ${esc(b.name.toUpperCase())} · ${fmtN(Math.max(0,Math.round(b.hp-f.dmg)))} HP LEFT</div>`; })():''}</div>`;
@@ -1643,7 +1646,7 @@ function vLog(){
     const es = d.log.filter(e=>acts.some(a=>a.id===e.id));
     if(!es.length) return '';
     const xp = es.reduce((x,e)=>x+e.xp,0);
-    return `${es.length} logged · <span class="${xp<0?'bad':'good'}">${fmtXP(xp)} XP</span>`;
+    return `<span class="${xp<0?'bad':'good'}">${fmtXP(xp)} XP</span>`;
   };
   const body = orderedCats().map(c=>{
     const acts = orderedActs(c.id).filter(a=>on(a.id)); if(!acts.length) return '';     // empty sections stay hidden
@@ -1985,7 +1988,7 @@ function vRecords(){
     + section('rc_titles', 'COSMETICS & TITLES', `${state.titles.length} earned`, titles)
     + `<div class="center small muted" style="margin:6px 0 10px">Ascend · ${VERSION}</div>`;
 }
-const VERSION = 'v12';
+const VERSION = 'v12.1';
 let prevTab = 'status';
 function vSettings(){
   const earnedTitles = TITLES.filter(t=>state.titles.includes(t.id)), g = state.wtGoal || {};
