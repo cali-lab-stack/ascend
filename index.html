@@ -316,6 +316,27 @@ body.shake #view{animation:shake .5s cubic-bezier(.36,.07,.19,.97) both}
 @keyframes xglowp{50%{opacity:.45}}
 @keyframes xdrift{0%{transform:translateX(-26px);opacity:0}25%{opacity:1}75%{opacity:1}100%{transform:translateX(26px);opacity:0}}
 @media (prefers-reduced-motion: reduce){.av5 *{animation:none!important}}
+/* boss art v14 */
+.bossv{width:200px;height:200px;margin:0 auto}
+.bossv svg{width:100%;height:100%;overflow:visible}
+.bossv .breathe{animation:xbreathe 4.2s ease-in-out infinite;transform-box:view-box}
+.bossv .sway{animation:xsway 5s ease-in-out infinite;transform-box:view-box}
+.bossv .pulse{animation:xpulse 3.4s ease-in-out infinite;transform-box:view-box}
+.bossv .flick{animation:xflick2 2.6s ease-in-out infinite}
+.bossv .spin{animation:xspin 18s linear infinite;transform-box:view-box}
+.bossv .spinr{animation:xspin 26s linear infinite reverse;transform-box:view-box}
+.bossv .rise{animation:xriseb 4s linear infinite}
+.bossv .bob{animation:xbobb 3.6s ease-in-out infinite;transform-box:view-box}
+.bossv .glowp{animation:xglowp 2.2s ease-in-out infinite}
+.bossv .kdrift{animation:xkdrift 14s linear infinite alternate}
+.bossv .glitchA{animation:xglA 3.2s steps(1) infinite}.bossv .glitchB{animation:xglB 3.2s steps(1) infinite}
+.bossv.bhurt{animation:bshake .4s}
+@keyframes xriseb{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(-120px);opacity:0}}
+@keyframes xbobb{50%{transform:translateY(-5px)}}
+@keyframes xkdrift{to{transform:translate(-8px,-14px)}}
+@keyframes xglA{0%,86%,100%{transform:translate(0,0)}88%{transform:translate(-3px,1px)}92%{transform:translate(2px,-1px)}}
+@keyframes xglB{0%,86%,100%{transform:translate(0,0)}89%{transform:translate(3px,-1px)}93%{transform:translate(-2px,1px)}}
+@media (prefers-reduced-motion: reduce){.bossv *{animation:none!important}}
 .hint{border:1px dashed rgba(255,209,102,.6);color:#ffe7a8;padding:10px 12px;border-radius:5px;font-size:.9rem;margin-bottom:14px}
 </style>
 </head>
@@ -713,6 +734,7 @@ function bossInfo(n){
   const hp = Math.round(BOSS_HP1*Math.pow(BOSS_GROWTH, n-1)*(chapterBoss?BOSS_CH_MULT:1)/10)*10;
   const xp = Math.round((150 + 15*(n-1))*(chapterBoss?2:1));
   const pts = 3 + Math.floor((n-1)/10) + (chapterBoss?2:0);
+  if(n===13) return {n, name:'K', arch:'k', chapter:null, special:true, chName:'???', rgb:'235,235,245', chapterBoss:false, hp, xp, pts, lore:'No record. No name. Only K.', cosmetic:null};
   if(n<=100){
     const ci = Math.floor((n-1)/10), ch = CHAPTERS[ci], [name, arch] = ch.b[(n-1)%10];
     return {n, name, arch, chapter:ci+1, chName:ch.name, rgb:ch.rgb, chapterBoss, hp, xp, pts, lore: chapterBoss ? ch.lore : BOSS_LORE[arch], cosmetic: chapterBoss ? ci+1 : null};
@@ -766,26 +788,406 @@ function checkBossWin(){
   { const d = day(); d.extraXP = r1((d.extraXP||0) + b.xp); }
   gainXP(b.xp);
 }
+/* ---------- boss art (v14): see boss-samples.html ---------- */
+const BOSSART = (()=>{
+/* ---------- BOSS: GATESTONE GOLEM ---------- */
+function golem(id, rgb){
+  const c = `rgb(${rgb})`, ca = a => `rgba(${rgb},${a})`, G = `filter="url(#${id}g)"`;
+  const L='#2b4a50', M='#183034', D='#0b1a1d', X='#050d0f';
+  const mir = pts => pts.map(([x,y])=>[240-x,y]);
+  const poly = (pts, fill, extra='') => `<polygon points="${pts.map(p=>p.join(',')).join(' ')}" fill="${fill}" stroke="${ca(.35)}" stroke-width=".8" stroke-linejoin="round" ${extra}/>`;
+  const sh = [[40,72],[70,56],[92,70],[84,102],[52,108],[32,90]];
+  const shF = [[52,64],[70,56],[92,70],[74,80]];
+  const up = [[38,100],[64,104],[60,142],[34,140]];
+  const fist = [[16,140],[62,140],[68,176],[50,192],[18,182],[12,158]];
+  const fistF = [[16,140],[62,140],[52,156],[20,156]];
+  const leg = [[86,162],[114,170],[110,206],[80,208],[74,186]];
+  const foot = [[70,204],[114,202],[118,216],[66,218]];
+  const frag = (x,y,s,r) => `<polygon transform="translate(${x} ${y}) rotate(${r}) scale(${s})" points="0,-6 6,-2 4,6 -4,6 -6,-1" fill="${M}" stroke="${ca(.6)}" stroke-width="1"/>`;
+  return `<svg viewBox="0 0 240 240"><defs>
+    <filter id="${id}g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <radialGradient id="${id}a"><stop offset="0" stop-color="${c}" stop-opacity=".4"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>
+    <radialGradient id="${id}core"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="${c}"/><stop offset="1" stop-color="${ca(.1)}"/></radialGradient>
+  </defs>
+  <circle class="pulse" style="transform-origin:120px 120px" cx="120" cy="120" r="112" fill="url(#${id}a)"/>
+  <ellipse cx="120" cy="220" rx="80" ry="9" fill="#000" opacity=".6"/>
+  <g class="spin" style="transform-origin:120px 110px;animation-duration:30s">${frag(14,60,1.1,20)}${frag(220,80,.9,-30)}${frag(200,180,1.2,50)}${frag(30,190,.8,10)}${frag(120,4,.9,0)}</g>
+  <g class="breathe" style="transform-origin:120px 220px">
+    ${poly(leg,M)}${poly(mir(leg),D)}${poly(foot,L)}${poly(mir(foot),M)}
+    ${poly([[78,70],[100,78],[90,118],[64,110]],M)}
+    ${poly([[140,78],[162,70],[176,110],[150,118]],D)}
+    ${poly([[64,110],[90,118],[120,140],[120,172],[80,160]],D)}
+    ${poly([[150,118],[176,110],[160,160],[120,172],[120,140]],X)}
+    ${poly([[100,78],[140,78],[150,118],[120,140],[90,118]],L)}
+    ${poly([[100,78],[120,84],[140,78],[150,118],[120,140]],M,'opacity=".55"')}
+    <path d="M112 86 L118 100 L111 113 L119 126 M140 90 L147 104 L142 116 M84 128 L96 140 L92 152 M150 132 L160 146" stroke="${c}" stroke-width="1.6" fill="none" class="glowp" ${G}/>
+    <circle cx="120" cy="108" r="13" fill="url(#${id}core)" class="pulse" style="transform-origin:120px 108px" ${G}/>
+    <path d="M120 98 L127 108 L120 118 L113 108Z" fill="#fff" opacity=".85"/>
+    ${poly(up,M)}${poly(mir(up),D)}
+    ${poly(fist,M)}${poly(fistF,L)}${poly(mir(fist),D)}${poly(mir(fistF),M)}
+    <path d="M24 166 L36 172 L30 182 M216 166 L204 172 L210 182" stroke="${c}" stroke-width="1.3" fill="none" class="glowp" ${G}/>
+    ${poly(sh,M)}${poly(shF,L)}${poly(mir(sh),D)}${poly(mir(shF),M)}
+    <path d="M48 66 q6 -6 12 -2 q6 -5 10 1 M172 68 q6 -6 12 -1 q5 -4 9 2" stroke="#4dbf7a" stroke-width="3" stroke-linecap="round" fill="none" opacity=".75"/>
+    ${poly([[102,36],[138,36],[148,56],[140,80],[100,80],[92,56]],M)}
+    ${poly([[102,36],[138,36],[132,50],[108,50]],L)}
+    ${poly([[120,50],[148,56],[140,80],[120,80]],D)}
+    <polygon points="96,58 144,58 138,66 102,66" fill="${X}"/>
+    <g class="flick" ${G}><path d="M105 64 L116 62 L114 67 L106 68Z M135 64 L124 62 L126 67 L134 68Z" fill="${c}"/></g>
+    <path d="M100 36 C108 30 132 30 140 36 L120 26Z" fill="${X}"/>
+    <polygon points="98,98 104,96 102,104" fill="${c}" opacity=".7" ${G}/>
+    <path d="M96 58 L144 58" stroke="${ca(.85)}" stroke-width="1.6" ${G}/>
+    <polygon points="78,70 162,70 176,110 160,160 120,172 80,160 64,110" fill="none" stroke="${c}" stroke-width="1.4" opacity=".7" ${G}/>
+  </g></svg>`;
+}
+
+/* ---------- BOSS: THE PYRE HYDRA ---------- */
+function hydra(id, rgb){
+  const c = `rgb(${rgb})`, ca = a => `rgba(${rgb},${a})`, G = `filter="url(#${id}g)"`;
+  const head = (x,y,rot,s,breath) => `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${s})">
+    <path d="M-12 -14 C-22 -24 -26 -38 -22 -50 C-18 -38 -12 -30 -4 -24Z M12 -14 C22 -24 26 -38 22 -50 C18 -38 12 -30 4 -24Z" fill="url(#${id}horn)" stroke="${ca(.8)}" stroke-width="1"/>
+    <path d="M-17 -6 C-18 -20 -10 -28 0 -28 C10 -28 18 -20 17 -6 C16 6 10 16 6 26 L-6 26 C-10 16 -16 6 -17 -6Z" fill="url(#${id}skin)" stroke="${c}" stroke-width="1.4" ${G}/>
+    <path d="M-10 -20 Q0 -25 10 -20 M-12 -12 Q0 -16 12 -12" stroke="rgba(255,255,255,.12)" stroke-width="1.2" fill="none"/>
+    <path d="M-17 -4 L-24 -2 L-16 2 M17 -4 L24 -2 L16 2" fill="${ca(.5)}" stroke="${ca(.8)}" stroke-width=".8"/>
+    <g class="flick" ${G}><path d="M-12 -6 L-4 -4 L-6 0 L-12 -1Z M12 -6 L4 -4 L6 0 L12 -1Z" fill="#ffe08a"/></g>
+    <path d="M-7 18 L0 40 L7 18 Z" fill="url(#${id}mouth)" ${G}/>
+    <path d="M-6 20 L-4 25 L-2 20 M2 20 L4 25 L6 20" fill="#fff" opacity=".85"/>
+    <circle cx="-3" cy="12" r="1" fill="#000"/><circle cx="3" cy="12" r="1" fill="#000"/>
+    ${breath?`<path class="flick" d="M-6 38 C-14 54 -8 66 0 74 C8 66 14 54 6 38Z" fill="url(#${id}fire)" opacity=".9" ${G}/>`:''}
+  </g>`;
+  const embers = Array.from({length:16},(_,i)=>`<circle class="rise" style="animation-delay:-${(i*.37%4).toFixed(2)}s;animation-duration:${(2.6+(i%5)*.5).toFixed(1)}s" cx="${40+(i*29%160)}" cy="${190+(i*13%30)}" r="${(1+(i%3)*.7).toFixed(1)}" fill="${i%3?c:'#ffe08a'}" ${G}/>`).join('');
+  const neck = (d) => `<path d="${d}" fill="url(#${id}skin)" stroke="${c}" stroke-width="1.4" ${G}/><path d="${d}" fill="url(#${id}scales)" opacity=".55"/>`;
+  return `<svg viewBox="0 0 240 240"><defs>
+    <filter id="${id}g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <radialGradient id="${id}a"><stop offset="0" stop-color="${c}" stop-opacity=".45"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>
+    <linearGradient id="${id}skin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a1c14"/><stop offset=".5" stop-color="#1c0d0a"/><stop offset="1" stop-color="#0a0504"/></linearGradient>
+    <linearGradient id="${id}horn" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#2a140e"/><stop offset="1" stop-color="${c}"/></linearGradient>
+    <linearGradient id="${id}mouth" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="${c}"/></linearGradient>
+    <linearGradient id="${id}fire" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".4" stop-color="#ffb347"/><stop offset="1" stop-color="${ca(0)}"/></linearGradient>
+    <pattern id="${id}scales" width="10" height="8" patternUnits="userSpaceOnUse"><path d="M0 8 Q5 0 10 8" fill="none" stroke="${c}" stroke-width=".7" opacity=".55"/><path d="M-5 4 Q0 -4 5 4 M5 4 Q10 -4 15 4" fill="none" stroke="${c}" stroke-width=".5" opacity=".35"/></pattern>
+  </defs>
+  <circle class="pulse" style="transform-origin:120px 130px" cx="120" cy="130" r="112" fill="url(#${id}a)"/>
+  <ellipse cx="120" cy="222" rx="88" ry="9" fill="#000" opacity=".6"/>
+  <path d="M30 222 C40 200 60 206 70 214 C80 196 100 204 110 216 C120 196 140 198 150 214 C162 200 184 204 196 222Z" fill="${ca(.35)}" class="flick" ${G}/>
+  <g class="breathe" style="transform-origin:120px 220px">
+    <g class="sway" style="transform-origin:96px 180px;animation-duration:4.4s">${neck("M90 186 C74 150 46 136 36 100 C34 92 38 86 46 84 L58 86 C64 112 88 132 110 168Z")}</g>
+    <g class="sway" style="transform-origin:144px 180px;animation-duration:4.9s;animation-direction:reverse">${neck("M150 186 C166 150 194 136 204 100 C206 92 202 86 194 84 L182 86 C176 112 152 132 130 168Z")}</g>
+    ${neck("M104 190 C98 150 106 110 112 76 L130 76 C134 110 142 150 136 190Z")}
+    <path d="M40 222 C40 186 80 164 120 164 C160 164 200 186 200 222Z" fill="url(#${id}skin)" stroke="${c}" stroke-width="1.5" ${G}/>
+    <path d="M40 222 C40 186 80 164 120 164 C160 164 200 186 200 222Z" fill="url(#${id}scales)" opacity=".7"/>
+    <path d="M70 180 L60 166 L78 176 M100 168 L94 152 L108 166 M140 168 L146 152 L132 166 M170 180 L180 166 L162 176" fill="${ca(.6)}" stroke="${c}" stroke-width="1" ${G}/>
+    <g class="bob" style="transform-origin:52px 82px;animation-duration:3.2s">${head(52,80,-28,.95,false)}</g>
+    <g class="bob" style="transform-origin:188px 82px;animation-duration:3.9s">${head(188,80,28,.95,false)}</g>
+    <g class="bob" style="transform-origin:121px 64px">${head(121,62,0,1.15,true)}</g>
+  </g>
+  ${embers}
+  </svg>`;
+}
+
+/* ===== shared helpers for the new bosses (same style as Golem & Hydra) ===== */
+const f1 = n => (+n).toFixed(1);
+const bBase = (id, c, ca, extra='') => `<filter id="${id}g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <filter id="${id}gb" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <radialGradient id="${id}a"><stop offset="0" stop-color="${c}" stop-opacity=".42"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>
+  <radialGradient id="${id}core"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="${c}"/><stop offset="1" stop-color="${ca(.1)}"/></radialGradient>${extra}`;
+const polyB = (ca) => (pts, fill, extra='') => `<polygon points="${pts.map(p=>p.join(',')).join(' ')}" fill="${fill}" stroke="${ca(.35)}" stroke-width=".8" stroke-linejoin="round" ${extra}/>`;
+const mirB = pts => pts.map(([x,y])=>[240-x,y]);
+const aura = (id, cy=120) => `<circle class="pulse" style="transform-origin:120px ${cy}px" cx="120" cy="${cy}" r="112" fill="url(#${id}a)"/>`;
+const shadow = (rx=80) => `<ellipse cx="120" cy="222" rx="${rx}" ry="9" fill="#000" opacity=".6"/>`;
+const motes = (c, G, n=12, y0=180) => Array.from({length:n},(_,i)=>`<circle class="rise" style="animation-delay:-${(i*.41%4).toFixed(2)}s;animation-duration:${(3+(i%5)*.5).toFixed(1)}s" cx="${30+(i*37%180)}" cy="${y0+(i*17%40)}" r="${(.8+(i%3)*.6).toFixed(1)}" fill="${c}" ${G}/>`).join('');
+
+/* ---------- WRAITH (e.g. Drowned Watcher) ---------- */
+function wraith(id, rgb){
+  const c=`rgb(${rgb})`, ca=a=>`rgba(${rgb},${a})`, G=`filter="url(#${id}g)"`;
+  const robe = 'M120 30 C96 30 82 48 80 74 C78 100 70 120 58 150 C50 170 46 190 40 214 L56 200 L64 220 L78 202 L90 222 L102 204 L114 224 L126 204 L138 222 L150 202 L162 220 L172 200 L188 214 C182 190 178 170 170 150 C158 120 150 100 148 74 C146 48 136 30 120 30Z';
+  const chain = (x1,y1,x2,y2) => { const n=8, o=[]; for(let i=0;i<=n;i++){ const x=x1+(x2-x1)*i/n, y=y1+(y2-y1)*i/n+Math.sin(i/n*Math.PI)*10; o.push(`<ellipse cx="${f1(x)}" cy="${f1(y)}" rx="2.6" ry="1.6" fill="none" stroke="#7d8798" stroke-width="1.1" transform="rotate(${i%2?60:-30} ${f1(x)} ${f1(y)})"/>`); } return o.join(''); };
+  const hand = (x,y,s) => `<g transform="translate(${x} ${y}) scale(${s} 1)"><path d="M0 0 C-6 4 -10 12 -12 22 M0 0 C-3 6 -4 16 -4 26 M0 0 C1 7 3 16 6 24 M0 0 C4 4 9 10 12 16" fill="none" stroke="#c9d6e6" stroke-width="2" stroke-linecap="round"/><path d="M-12 22 l-2 5 M-4 26 l0 6 M6 24 l2 5 M12 16 l4 3" stroke="${c}" stroke-width="1.4" stroke-linecap="round" ${G}/></g>`;
+  return `<svg viewBox="0 0 240 240"><defs>${bBase(id,c,ca,`
+    <linearGradient id="${id}robe" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1d2a33"/><stop offset=".55" stop-color="#0c141a"/><stop offset="1" stop-color="${ca(0)}"/></linearGradient>
+    <radialGradient id="${id}void" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="${ca(.35)}"/><stop offset=".5" stop-color="#020506"/><stop offset="1" stop-color="#000"/></radialGradient>`)}</defs>
+  ${aura(id)}
+  <g class="flick">${[0,1,2,3].map(i=>`<ellipse cx="${70+i*34}" cy="${214-i%2*4}" rx="${30-i*2}" ry="6" fill="${ca(.18)}" ${G}/>`).join('')}</g>
+  <g class="bob" style="transform-origin:120px 120px">
+    <g class="sway" style="transform-origin:120px 60px;animation-duration:6s"><path d="${robe}" fill="url(#${id}robe)"/><path d="${robe}" fill="none" stroke="${c}" stroke-width="1.3" opacity=".75" ${G}/>
+      <path d="M100 80 C96 120 90 160 84 200 M120 84 L120 210 M140 80 C144 120 150 160 156 200" stroke="${ca(.18)}" stroke-width="1.4" fill="none"/></g>
+    <path d="M86 92 C70 110 62 126 58 146 L70 148 C74 132 82 118 92 108Z M154 92 C170 110 178 126 182 146 L170 148 C166 132 158 118 148 108Z" fill="#111b22" stroke="${ca(.6)}" stroke-width="1"/>
+    ${hand(62,146,1)}${hand(178,146,-1)}
+    <path d="M96 60 C96 40 108 30 120 30 C132 30 144 40 144 60 C144 76 134 88 120 92 C106 88 96 76 96 60Z" fill="#16222b" stroke="${c}" stroke-width="1.4" ${G}/>
+    <path d="M104 62 C104 48 112 42 120 42 C128 42 136 48 136 62 C136 74 128 82 120 84 C112 82 104 74 104 62Z" fill="url(#${id}void)"/>
+    <g class="flick" ${G}><circle cx="112" cy="62" r="3" fill="${c}"/><circle cx="128" cy="62" r="3" fill="${c}"/><path d="M112 66 L111 80 M128 66 L129 82" stroke="${c}" stroke-width="1.2" opacity=".7"/></g>
+    ${chain(84,112,156,112)}${chain(92,132,150,140)}
+    <circle cx="120" cy="114" r="5" fill="url(#${id}core)" class="pulse" style="transform-origin:120px 114px" ${G}/>
+  </g>
+  ${motes(ca(.8), G, 14, 160)}
+  </svg>`;
+}
+
+/* ---------- BEAST (e.g. Rubble Hound / Cinder Wolf) ---------- */
+function beast(id, rgb){
+  const c=`rgb(${rgb})`, ca=a=>`rgba(${rgb},${a})`, G=`filter="url(#${id}g)"`, P=polyB(ca);
+  const L='#3a3f4a', M='#232832', D='#14181f', X='#090b10';
+  return `<svg viewBox="0 0 240 240"><defs>${bBase(id,c,ca)}</defs>
+  ${aura(id,130)}${shadow(92)}
+  <g class="breathe" style="transform-origin:120px 220px">
+    <g class="sway" style="transform-origin:190px 130px;animation-duration:3s">${P([[184,120],[214,92],[226,70],[220,98],[204,128],[192,136]],D)}${P([[214,92],[226,70],[222,84]],M)}<path d="M216 84 L224 72" stroke="${c}" stroke-width="1.4" ${G}/></g>
+    ${P([[160,150],[178,150],[186,196],[176,216],[160,214],[166,196]],X)}${P([[164,206],[184,206],[190,218],[160,218]],D)}
+    ${P([[70,126],[140,110],[188,124],[196,150],[176,170],[110,172],[64,160]],M)}
+    ${P([[70,126],[140,110],[188,124],[150,132],[100,138]],L)}
+    ${P([[100,138],[150,132],[196,150],[176,170],[110,172]],D)}
+    <path d="M90 118 L84 100 L98 112 L102 92 L112 110 L120 88 L128 108 L138 90 L142 108 L152 96 L156 114" fill="${D}" stroke="${c}" stroke-width="1.1" ${G}/>
+    ${P([[132,150],[152,152],[160,196],[150,216],[134,214],[140,196]],D)}${P([[138,206],[158,206],[164,218],[134,218]],M)}
+    ${P([[78,150],[100,154],[96,196],[86,216],[70,214],[78,194]],M)}${P([[72,206],[94,206],[98,218],[66,218]],L)}
+    <path d="M70 216 l-3 4 M78 216 l-1 5 M86 216 l1 5 M136 216 l-2 4 M144 216 l0 5 M152 216 l2 4" stroke="#d6dce6" stroke-width="1.6" stroke-linecap="round"/>
+    ${P([[30,104],[56,84],[84,92],[96,118],[84,140],[56,142],[34,130]],M)}
+    ${P([[30,104],[56,84],[84,92],[60,104],[40,112]],L)}
+    ${P([[50,74],[58,58],[66,84]],D)}${P([[70,78],[82,62],[84,92]],X)}
+    ${P([[10,116],[34,108],[40,126],[20,132]],D)}
+    <path d="M14 126 L36 128 L34 140 L18 136Z" fill="${X}" stroke="${ca(.5)}" stroke-width=".8"/>
+    <path d="M18 126 l2 6 l2 -6 M26 127 l2 6 l2 -6 M20 136 l2 -5 l2 5 M28 137 l2 -5 l2 5" fill="#f2f5fa"/>
+    <g class="flick" ${G}><path d="M40 108 L54 104 L50 112Z" fill="${c}"/><path d="M60 102 L70 100 L66 108Z" fill="${c}" opacity=".8"/></g>
+    <path d="M100 126 L116 134 L112 146 M140 122 L156 128 L150 142 M170 136 L182 146" stroke="${c}" stroke-width="1.5" fill="none" class="glowp" ${G}/>
+    <circle cx="128" cy="140" r="7" fill="url(#${id}core)" class="pulse" style="transform-origin:128px 140px" ${G}/>
+  </g>
+  <g class="flick" opacity=".5"><path d="M12 140 Q-2 146 4 156 Q10 150 20 152" fill="none" stroke="#c9d6e6" stroke-width="1.4"/></g>
+  ${motes(ca(.7), G, 10, 196)}
+  </svg>`;
+}
+
+/* ---------- SERPENT (e.g. Mire Coil) ---------- */
+function serpent(id, rgb){
+  const c=`rgb(${rgb})`, ca=a=>`rgba(${rgb},${a})`, G=`filter="url(#${id}g)"`;
+  const coil = (d,w) => `<path d="${d}" fill="none" stroke="url(#${id}skin)" stroke-width="${w}" stroke-linecap="round"/><path d="${d}" fill="none" stroke="url(#${id}scales)" stroke-width="${w-2}" stroke-linecap="round" opacity=".7"/><path d="${d}" fill="none" stroke="${c}" stroke-width="1.2" stroke-dasharray="2 9" opacity=".8" ${G}/>`;
+  return `<svg viewBox="0 0 240 240"><defs>${bBase(id,c,ca,`
+    <linearGradient id="${id}skin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2e3b32"/><stop offset=".5" stop-color="#16201a"/><stop offset="1" stop-color="#080d0a"/></linearGradient>
+    <linearGradient id="${id}belly" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a5a42"/><stop offset="1" stop-color="#1e2a1c"/></linearGradient>
+    <pattern id="${id}scales" width="9" height="7" patternUnits="userSpaceOnUse"><path d="M0 7 Q4.5 0 9 7" fill="none" stroke="${c}" stroke-width=".6" opacity=".5"/></pattern>`)}</defs>
+  ${aura(id,130)}${shadow(96)}
+  <g class="breathe" style="transform-origin:120px 220px">
+    ${coil('M40 206 C40 180 96 176 120 182 C150 188 200 186 200 206 C200 224 150 226 120 222 C88 220 50 222 40 206', 26)}
+    ${coil('M66 186 C64 160 104 150 130 156 C160 162 178 168 172 186', 22)}
+    <path d="M80 214 L72 222 M110 220 L106 228 M150 220 L154 228 M182 212 L190 220" stroke="${c}" stroke-width="1" ${G}/>
+    <g class="sway" style="transform-origin:150px 160px;animation-duration:5s">
+      ${coil('M160 166 C176 140 168 112 146 96 C130 84 124 68 128 52', 20)}
+      <path d="M150 158 C162 140 158 118 142 104" fill="none" stroke="url(#${id}belly)" stroke-width="8" stroke-linecap="round" opacity=".8"/>
+      <path d="M128 38 C100 36 84 58 86 84 C88 102 104 110 120 106 L136 106 C152 110 168 102 170 84 C172 58 156 36 128 38Z" fill="url(#${id}skin)" stroke="${c}" stroke-width="1.4" ${G}/>
+      <path d="M128 38 C100 36 84 58 86 84 C88 102 104 110 120 106 L136 106 C152 110 168 102 170 84 C172 58 156 36 128 38Z" fill="url(#${id}scales)" opacity=".6"/>
+      <path d="M128 50 C116 52 112 70 116 92 C120 100 136 100 140 92 C144 70 140 52 128 50Z" fill="url(#${id}belly)" opacity=".85"/>
+      ${[[0,54],[0,66],[0,78],[0,90]].map(([dx,y])=>`<path d="M${120+dx} ${y} Q128 ${y+4} ${136-dx} ${y}" stroke="rgba(0,0,0,.35)" stroke-width="1" fill="none"/>`).join('')}
+      <g class="glowp" ${G}><ellipse cx="104" cy="70" rx="7" ry="9" fill="none" stroke="${c}" stroke-width="2"/><circle cx="104" cy="70" r="2.6" fill="${c}"/><ellipse cx="152" cy="70" rx="7" ry="9" fill="none" stroke="${c}" stroke-width="2"/><circle cx="152" cy="70" r="2.6" fill="${c}"/></g>
+      <path d="M116 30 C112 20 120 10 128 8 C136 10 144 20 140 30 C138 40 134 48 128 50 C122 48 118 40 116 30Z" fill="url(#${id}skin)" stroke="${c}" stroke-width="1.3" ${G}/>
+      <g class="flick" ${G}><path d="M118 24 L124 26 L121 29Z M138 24 L132 26 L135 29Z" fill="${c}"/></g>
+      <path d="M124 44 L122 52 M132 44 L134 52" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+      <path class="flick" d="M128 50 L128 60 L124 66 M128 60 L132 66" stroke="#ff6b80" stroke-width="1.2" fill="none"/>
+    </g>
+  </g>
+  <g class="flick" opacity=".55">${[30,80,170,210].map((x,i)=>`<circle cx="${x}" cy="${214+i%2*4}" r="${3+i%2}" fill="none" stroke="${ca(.6)}" stroke-width="1"/>`).join('')}</g>
+  ${motes(ca(.6), G, 8, 200)}
+  </svg>`;
+}
+
+/* ---------- KNIGHT (e.g. Rusted Sentinel) ---------- */
+function knight(id, rgb){
+  const c=`rgb(${rgb})`, ca=a=>`rgba(${rgb},${a})`, G=`filter="url(#${id}g)"`, P=polyB(ca);
+  const L='#56606e', M='#363e4a', D='#1e242d', X='#0d1117';
+  return `<svg viewBox="0 0 240 240"><defs>${bBase(id,c,ca,`
+    <linearGradient id="${id}cape" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1218"/><stop offset="1" stop-color="#0a0406"/></linearGradient>
+    <linearGradient id="${id}blade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6b7486"/><stop offset=".5" stop-color="#dfe5ee"/><stop offset="1" stop-color="#5d6676"/></linearGradient>`)}</defs>
+  ${aura(id)}${shadow(84)}
+  <g class="sway" style="transform-origin:120px 70px;animation-duration:6s"><path d="M84 70 C70 120 66 170 60 216 L180 216 C174 170 170 120 156 70Z" fill="url(#${id}cape)" stroke="${ca(.5)}" stroke-width="1"/></g>
+  <g class="breathe" style="transform-origin:120px 220px">
+    ${P([[98,150],[118,150],[116,206],[96,206]],M)}${P(mirB([[98,150],[118,150],[116,206],[96,206]]),D)}
+    ${P([[92,200],[118,200],[120,218],[88,218]],L)}${P(mirB([[92,200],[118,200],[120,218],[88,218]]),M)}
+    ${P([[100,172],[116,172],[114,184],[102,184]],L)}${P(mirB([[100,172],[116,172],[114,184],[102,184]]),M)}
+    ${P([[90,76],[150,76],[158,118],[146,152],[94,152],[82,118]],M)}
+    ${P([[90,76],[120,80],[120,152],[94,152],[82,118]],L,'opacity=".6"')}
+    <path d="M100 96 L140 96 L136 150 L104 150Z" fill="${ca(.25)}" stroke="${c}" stroke-width="1"/>
+    <path d="M120 102 L130 118 L120 140 L110 118Z" fill="none" stroke="${c}" stroke-width="1.5" class="glowp" ${G}/>
+    ${P([[66,74],[96,66],[104,88],[84,100],[62,94]],L)}${P(mirB([[66,74],[96,66],[104,88],[84,100],[62,94]]),M)}
+    ${P([[62,94],[84,100],[80,140],[64,138]],D)}${P(mirB([[62,94],[84,100],[80,140],[64,138]]),X)}
+    <g>${P([[20,96],[66,96],[66,180],[43,200],[20,180]],M)}${P([[24,100],[62,100],[62,176],[43,194],[24,176]],D)}
+      <path d="M43 112 L54 136 L43 168 L32 136Z" fill="none" stroke="${c}" stroke-width="1.6" ${G}/><circle cx="43" cy="140" r="5" fill="url(#${id}core)" ${G}/>
+      ${[[26,104],[60,104],[26,170],[60,170]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.8" fill="${L}"/>`).join('')}</g>
+    <path d="M170 118 L176 118 L178 216 L168 216Z" fill="url(#${id}blade)" stroke="${D}" stroke-width=".6"/>
+    <path d="M160 116 L186 116 L184 122 L162 122Z" fill="${L}"/><rect x="169" y="96" width="8" height="20" rx="2" fill="#3a2a1c"/><circle cx="173" cy="94" r="4" fill="${L}"/>
+    ${P([[156,104],[178,100],[182,122],[160,126]],M)}
+    <path d="M173 140 L173 200" stroke="${c}" stroke-width="1" opacity=".7" ${G}/>
+    ${P([[102,34],[138,34],[144,52],[142,74],[120,80],[98,74],[96,52]],M)}
+    ${P([[102,34],[120,30],[120,80],[98,74],[96,52]],L,'opacity=".5"')}
+    <path d="M100 54 L140 54" stroke="${X}" stroke-width="5"/><g class="flick" ${G}><path d="M102 54 L138 54" stroke="${c}" stroke-width="2"/></g>
+    <path d="M120 58 L120 76 M112 62 L112 72 M128 62 L128 72" stroke="${X}" stroke-width="1.4"/>
+    <g class="sway" style="transform-origin:120px 34px;animation-duration:3s"><path d="M120 34 C112 20 118 8 128 4 C124 12 130 20 126 34Z" fill="${c}" opacity=".85" ${G}/></g>
+    <path d="M78 120 L84 128 M156 124 L150 132 M108 160 L112 168" stroke="#b5643a" stroke-width="2" opacity=".6"/>
+  </g>
+  ${motes(ca(.6), G, 8, 196)}
+  </svg>`;
+}
+/* ---------- EYE (e.g. Weeping Eye) ---------- */
+function eye(id, rgb){
+  const c=`rgb(${rgb})`, ca=a=>`rgba(${rgb},${a})`, G=`filter="url(#${id}g)"`;
+  const tent = (d,i) => `<g class="sway" style="transform-origin:120px 150px;animation-duration:${(3.4+i*.4).toFixed(1)}s;animation-delay:-${i*.5}s"><path d="${d}" fill="none" stroke="#1c1426" stroke-width="7" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${c}" stroke-width="1.2" stroke-dasharray="1 6" opacity=".8" ${G}/></g>`;
+  const mini = (x,y,r) => `<g><circle cx="${x}" cy="${y}" r="${r}" fill="#e8e2ee" stroke="${c}" stroke-width="1" ${G}/><circle cx="${x}" cy="${y}" r="${f1(r*.5)}" fill="${c}"/><circle cx="${x}" cy="${y}" r="${f1(r*.22)}" fill="#000"/></g>`;
+  return `<svg viewBox="0 0 240 240"><defs>${bBase(id,c,ca,`
+    <radialGradient id="${id}ball" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#d9d2e2"/><stop offset="1" stop-color="#7a6f8a"/></radialGradient>
+    <radialGradient id="${id}iris"><stop offset="0" stop-color="#000"/><stop offset=".28" stop-color="#000"/><stop offset=".32" stop-color="#fff"/><stop offset=".5" stop-color="${c}"/><stop offset="1" stop-color="${ca(.3)}"/></radialGradient>
+    <linearGradient id="${id}lid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a2c48"/><stop offset="1" stop-color="#140e1c"/></linearGradient>`)}</defs>
+  ${aura(id,110)}${shadow(60)}
+  ${tent('M100 150 C92 176 70 186 64 212',0)}${tent('M114 156 C110 182 104 196 100 218',1)}${tent('M128 156 C132 182 138 196 142 218',2)}${tent('M140 150 C150 176 170 186 178 212',3)}
+  <g class="bob" style="transform-origin:120px 100px">
+    <g class="spin" style="transform-origin:120px 100px;animation-duration:24s">${mini(36,70,7)}${mini(206,96,6)}${mini(120,8,5)}${mini(60,170,5)}</g>
+    <circle cx="120" cy="100" r="56" fill="url(#${id}ball)"/>
+    <path d="M70 84 C84 90 92 86 100 96 M170 80 C156 88 148 84 140 94 M76 128 C90 120 98 124 104 114 M166 130 C152 122 144 126 138 116" stroke="#b0405a" stroke-width="1.1" fill="none" opacity=".7"/>
+    <g class="pulse" style="transform-origin:120px 102px"><circle cx="120" cy="102" r="26" fill="url(#${id}iris)" ${G}/>
+      <path d="M120 82 L122 102 L120 122 L118 102Z" fill="#000"/></g>
+    <circle cx="108" cy="88" r="6" fill="#fff" opacity=".85"/>
+    <path d="M58 92 C70 52 170 52 182 92 C170 66 70 66 58 92Z" fill="url(#${id}lid)" stroke="${c}" stroke-width="1.4" ${G}/>
+    <path d="M58 108 C70 146 170 146 182 108 C170 132 70 132 58 108Z" fill="url(#${id}lid)" stroke="${c}" stroke-width="1.4" ${G}/>
+    ${[70,88,106,124,142,160].map((x,i)=>`<path d="M${x} ${66-Math.sin(i/5*Math.PI)*8} l${i<3?-4:4} -12" stroke="#2a2036" stroke-width="2.6" stroke-linecap="round"/>`).join('')}
+    <path d="M64 70 L56 48 L76 64 M176 70 L184 48 L164 64 M120 44 L120 22 L128 42" fill="#2a2036" stroke="${ca(.7)}" stroke-width="1"/>
+    <g class="rise" style="animation-duration:3.6s"><path d="M104 132 q-3 8 0 12 q3 -4 0 -12Z" fill="${c}" ${G}/></g>
+    <g class="rise" style="animation-duration:3.6s;animation-delay:-1.8s;animation-direction:reverse"><path d="M138 132 q-3 8 0 12 q3 -4 0 -12Z" fill="${c}" ${G}/></g>
+  </g>
+  ${motes(ca(.6), G, 10, 190)}
+  </svg>`;
+}
+
+/* ---------- SPIDER (e.g. Gate Crawler) ---------- */
+function spider(id, rgb){
+  const c=`rgb(${rgb})`, ca=a=>`rgba(${rgb},${a})`, G=`filter="url(#${id}g)"`;
+  const leg = (pts, w, i) => `<g class="sway" style="transform-origin:${pts[0][0]}px ${pts[0][1]}px;animation-duration:${(2.6+i*.2).toFixed(1)}s;animation-delay:-${(i*.3).toFixed(1)}s"><path d="M${pts.map(p=>p.join(' ')).join(' L')}" fill="none" stroke="#151822" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/><path d="M${pts.map(p=>p.join(' ')).join(' L')}" fill="none" stroke="${ca(.7)}" stroke-width="1" stroke-linejoin="round"/>${pts.slice(1,-1).map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="${f1(w*.45)}" fill="${c}" ${G}/>`).join('')}</g>`;
+  const L = [[[96,118],[60,84],[24,104]],[[94,126],[52,112],[16,142]],[[96,134],[56,148],[26,190]],[[102,140],[78,170],[60,214]]];
+  return `<svg viewBox="0 0 240 240"><defs>${bBase(id,c,ca,`
+    <radialGradient id="${id}body" cx="40%" cy="30%" r="75%"><stop offset="0" stop-color="#3a3348"/><stop offset=".6" stop-color="#17141f"/><stop offset="1" stop-color="#07060a"/></radialGradient>`)}</defs>
+  <g opacity=".35" stroke="${ca(.7)}" stroke-width=".7" fill="none"><path d="M120 0 L120 70 M0 30 L90 100 M240 30 L150 100 M0 120 L80 124 M240 120 L160 124"/>${[30,50,70].map(r=>`<path d="M${120-r} ${20+r*.6} Q120 ${30+r*.9} ${120+r} ${20+r*.6}"/>`).join('')}</g>
+  ${aura(id,130)}${shadow(100)}
+  <g class="breathe" style="transform-origin:120px 220px">
+    ${L.map((p,i)=>leg(p, 6-i*.4, i)).join('')}${L.map((p,i)=>leg(p.map(([x,y])=>[240-x,y]), 6-i*.4, i+4)).join('')}
+    <ellipse cx="120" cy="170" rx="44" ry="38" fill="url(#${id}body)" stroke="${c}" stroke-width="1.3" ${G}/>
+    <path d="M120 140 L134 160 L120 196 L106 160Z M108 172 L132 172" fill="none" stroke="${c}" stroke-width="1.8" class="glowp" ${G}/>
+    <path d="M88 160 Q120 150 152 160 M86 182 Q120 194 154 182" stroke="rgba(255,255,255,.08)" stroke-width="1.4" fill="none"/>
+    <ellipse cx="120" cy="124" rx="28" ry="22" fill="url(#${id}body)" stroke="${c}" stroke-width="1.3" ${G}/>
+    <g class="flick" ${G}>${[[110,114,3.2],[130,114,3.2],[104,122,2],[136,122,2],[114,106,1.6],[126,106,1.6],[120,120,2.4],[120,110,1.4]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/>`).join('')}</g>
+    <path d="M110 140 C106 150 108 158 114 160 L114 146Z M130 140 C134 150 132 158 126 160 L126 146Z" fill="#e8ecf2" stroke="${ca(.6)}" stroke-width=".6"/>
+  </g>
+  <g class="bob" style="animation-duration:4s"><path d="M196 10 L196 60" stroke="${ca(.6)}" stroke-width=".7"/><circle cx="196" cy="64" r="4" fill="#17141f" stroke="${c}" stroke-width="1" ${G}/></g>
+  ${motes(ca(.5), G, 8, 200)}
+  </svg>`;
+}
+
+/* ---------- DRAGON (e.g. Moss Drake) ---------- */
+function dragon(id, rgb){
+  const c=`rgb(${rgb})`, ca=a=>`rgba(${rgb},${a})`, G=`filter="url(#${id}g)"`;
+  const wing = s => `<g transform="translate(120 0) scale(${s} 1) translate(-120 0)"><g class="sway" style="transform-origin:110px 96px;animation-duration:4.6s">
+    <path d="M110 96 C90 60 60 34 18 22 C30 40 34 56 30 74 C42 70 54 74 60 84 C48 92 40 104 38 120 C54 110 72 112 84 122 C86 110 96 102 108 104Z" fill="url(#${id}wing)" stroke="${c}" stroke-width="1.3" ${G}/>
+    <path d="M110 96 L18 22 M108 100 L30 74 M106 104 L38 120" stroke="#2a3a2a" stroke-width="2.4" fill="none"/>
+    <path d="M110 96 L18 22 M108 100 L30 74 M106 104 L38 120" stroke="${ca(.5)}" stroke-width=".8" fill="none"/></g></g>`;
+  return `<svg viewBox="0 0 240 240"><defs>${bBase(id,c,ca,`
+    <linearGradient id="${id}skin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2e3a30"/><stop offset=".5" stop-color="#151d17"/><stop offset="1" stop-color="#070b08"/></linearGradient>
+    <linearGradient id="${id}wing" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${ca(.35)}"/><stop offset=".6" stop-color="#0d140f"/><stop offset="1" stop-color="#060906"/></linearGradient>
+    <linearGradient id="${id}chest" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${ca(.8)}"/><stop offset="1" stop-color="${ca(.15)}"/></linearGradient>
+    <pattern id="${id}scales" width="9" height="7" patternUnits="userSpaceOnUse"><path d="M0 7 Q4.5 0 9 7" fill="none" stroke="${c}" stroke-width=".6" opacity=".45"/></pattern>`)}</defs>
+  ${aura(id,110)}${shadow(90)}
+  ${wing(1)}${wing(-1)}
+  <g class="breathe" style="transform-origin:120px 220px">
+    <g class="sway" style="transform-origin:140px 200px;animation-duration:3.6s"><path d="M140 196 C170 204 196 196 208 176 C214 166 222 166 226 172 C218 174 216 186 206 196 C192 212 160 216 136 210Z" fill="url(#${id}skin)" stroke="${c}" stroke-width="1.1" ${G}/><path d="M220 166 L232 160 L226 174Z" fill="${c}" ${G}/></g>
+    <path d="M86 214 C82 180 92 140 104 116 L136 116 C148 140 158 180 154 214Z" fill="url(#${id}skin)" stroke="${c}" stroke-width="1.3" ${G}/>
+    <path d="M86 214 C82 180 92 140 104 116 L136 116 C148 140 158 180 154 214Z" fill="url(#${id}scales)"/>
+    <path d="M104 124 L136 124 L132 200 L108 200Z" fill="url(#${id}chest)" opacity=".55"/>
+    ${[132,144,156,168,180,192].map(y=>`<path d="M${108+(y-132)*.02} ${y} Q120 ${y+5} ${132-(y-132)*.02} ${y}" stroke="${ca(.8)}" stroke-width="1" fill="none"/>`).join('')}
+    <path d="M80 214 L76 186 L92 196 L96 220Z M160 214 L164 186 L148 196 L144 220Z" fill="#0b100c" stroke="${ca(.6)}" stroke-width="1"/>
+    <path d="M76 220 l-4 2 M82 221 l-1 4 M164 220 l4 2 M158 221 l1 4" stroke="#e8ecf2" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M108 118 C106 98 110 80 116 66 L126 66 C132 80 134 98 132 118Z" fill="url(#${id}skin)" stroke="${c}" stroke-width="1.2" ${G}/>
+    <path d="M120 70 L114 60 L120 62 L126 60Z M120 84 L112 76 L128 76Z M120 98 L112 92 L128 92Z" fill="${ca(.6)}"/>
+    <g class="bob" style="transform-origin:120px 46px">
+      <path d="M98 50 C98 32 108 22 120 22 C132 22 142 32 142 50 C142 62 136 70 128 74 L112 74 C104 70 98 62 98 50Z" fill="url(#${id}skin)" stroke="${c}" stroke-width="1.4" ${G}/>
+      <path d="M104 30 C92 18 88 6 92 -4 C98 8 104 14 112 22Z M136 30 C148 18 152 6 148 -4 C142 8 136 14 128 22Z" fill="#1c241e" stroke="${c}" stroke-width="1"/>
+      <path d="M100 40 L90 36 L100 46 M140 40 L150 36 L140 46" fill="#1c241e" stroke="${ca(.6)}" stroke-width=".8"/>
+      <g class="flick" ${G}><path d="M104 44 L116 46 L112 51 L105 50Z M136 44 L124 46 L128 51 L135 50Z" fill="${c}"/></g>
+      <path d="M110 66 L114 72 L116 66 M124 66 L126 72 L130 66" fill="#fff"/>
+      <circle cx="115" cy="60" r="1.2" fill="#000"/><circle cx="125" cy="60" r="1.2" fill="#000"/>
+      <path class="flick" d="M114 74 C108 82 112 88 120 94 C128 88 132 82 126 74Z" fill="${c}" opacity=".7" ${G}/>
+    </g>
+  </g>
+  ${motes(ca(.7), G, 12, 190)}
+  </svg>`;
+}
+
+/* ---------- TITAN (e.g. Slumbering Colossus) ---------- */
+function titan(id, rgb){
+  const c=`rgb(${rgb})`, ca=a=>`rgba(${rgb},${a})`, G=`filter="url(#${id}g)"`, P=polyB(ca);
+  const L='#4a4f5c', M='#2e323c', D='#1a1d24', X='#0b0d12';
+  const chain = (x,y) => `<g class="sway" style="transform-origin:${x}px ${y}px;animation-duration:3s">${[0,1,2,3].map(i=>`<ellipse cx="${x}" cy="${y+6+i*8}" rx="${i%2?1.6:3}" ry="4" fill="none" stroke="#8a93a3" stroke-width="1.4"/>`).join('')}<path d="M${x-4} ${y+38} L${x+3} ${y+34} L${x+1} ${y+42}" fill="none" stroke="#8a93a3" stroke-width="1.4"/></g>`;
+  return `<svg viewBox="0 0 240 240"><defs>${bBase(id,c,ca)}</defs>
+  ${aura(id,110)}${shadow(96)}
+  <g class="breathe" style="transform-origin:120px 220px">
+    ${P([[90,150],[118,150],[114,200],[88,200]],M)}${P(mirB([[90,150],[118,150],[114,200],[88,200]]),D)}
+    ${P([[82,194],[118,194],[120,220],[78,220]],L)}${P(mirB([[82,194],[118,194],[120,220],[78,220]]),M)}
+    ${P([[70,70],[170,70],[184,110],[164,156],[76,156],[56,110]],M)}
+    ${P([[70,70],[120,76],[120,156],[76,156],[56,110]],L,'opacity=".55"')}
+    <path d="M90 92 C100 86 140 86 150 92 L146 134 C136 142 104 142 94 134Z" fill="${D}" stroke="${ca(.6)}" stroke-width="1"/>
+    <text x="120" y="126" font-size="30" text-anchor="middle" fill="${c}" class="glowp" ${G}>ᛟ</text>
+    ${P([[26,64],[74,56],[86,84],[70,104],[30,100],[18,82]],L)}${P(mirB([[26,64],[74,56],[86,84],[70,104],[30,100],[18,82]]),M)}
+    <path d="M30 64 L22 46 L40 60 M210 64 L218 46 L200 60" fill="${L}" stroke="${c}" stroke-width="1" ${G}/>
+    ${P([[22,100],[66,104],[60,160],[30,160]],M)}${P(mirB([[22,100],[66,104],[60,160],[30,160]]),D)}
+    ${P([[24,156],[64,156],[66,184],[46,196],[24,186]],L)}${P(mirB([[24,156],[64,156],[66,184],[46,196],[24,186]]),M)}
+    <path d="M24 166 L66 166 M174 166 L216 166" stroke="${c}" stroke-width="2" class="glowp" ${G}/>
+    ${chain(36,184)}${chain(204,184)}
+    ${P([[96,22],[144,22],[152,46],[146,70],[94,70],[88,46]],M)}${P([[96,22],[120,18],[120,70],[94,70],[88,46]],L,'opacity=".5"')}
+    <path d="M96 24 C84 10 78 -2 80 -12 C88 0 96 8 106 16Z M144 24 C156 10 162 -2 160 -12 C152 0 144 8 134 16Z" fill="${L}" stroke="${c}" stroke-width="1.1" ${G}/>
+    <path d="M94 42 L146 42 L142 52 L98 52Z" fill="${X}"/>
+    <g class="flick" ${G}><path d="M100 46 L114 45 L112 50 L101 50Z M140 46 L126 45 L128 50 L139 50Z" fill="${c}"/></g>
+    <path d="M110 58 L130 58 M108 64 L132 64" stroke="${X}" stroke-width="1.6"/>
+  </g>
+  ${motes(ca(.7), G, 10, 196)}
+  </svg>`;
+}
+
+/* ---------- SPECIAL: K ---------- */
+/* A tall figure that is a hole in the world: a starfield where a body should be, a cracked white mask,
+   glitching edges and slowly orbiting black monoliths. Monochrome with one crimson accent. */
+function bossK(id){
+  const G=`filter="url(#${id}g)"`, red='#ff2d55';
+  const body = 'M120 40 C108 40 100 50 100 62 C100 72 104 78 108 82 C92 88 84 100 82 120 C80 150 78 180 70 218 L170 218 C162 180 160 150 158 120 C156 100 148 88 132 82 C136 78 140 72 140 62 C140 50 132 40 120 40Z';
+  const stars = Array.from({length:46},(_,i)=>{ const x=74+(i*53%92), y=44+(i*97%172); return `<circle cx="${x}" cy="${y}" r="${((i%4)*.35+.4).toFixed(2)}" fill="#fff" opacity="${(.4+(i%5)*.12).toFixed(2)}"/>`; }).join('');
+  const mono = (a,r,h) => { const x=120+Math.cos(a*Math.PI/180)*r, y=120+Math.sin(a*Math.PI/180)*r*.35; return `<g transform="translate(${f1(x)} ${f1(y)})"><rect x="-5" y="${-h/2}" width="10" height="${h}" fill="#050507" stroke="rgba(255,255,255,.35)" stroke-width=".8"/><path d="M-5 ${-h/2} L5 ${-h/2}" stroke="#fff" stroke-width="1" opacity=".7"/></g>`; };
+  return `<svg viewBox="0 0 240 240"><defs>
+    <filter id="${id}g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <clipPath id="${id}clip"><path d="${body}"/></clipPath>
+    <radialGradient id="${id}void" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="#141026"/><stop offset=".6" stop-color="#05040a"/><stop offset="1" stop-color="#000"/></radialGradient>
+    <radialGradient id="${id}halo"><stop offset="0" stop-color="#fff" stop-opacity=".18"/><stop offset=".6" stop-color="#fff" stop-opacity=".04"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="${id}mask" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#d8d8e0"/><stop offset="1" stop-color="#8a8a96"/></linearGradient>
+  </defs>
+  <circle cx="120" cy="120" r="116" fill="url(#${id}halo)" class="pulse" style="transform-origin:120px 120px"/>
+  <g transform="translate(120 34) scale(1 .3)"><g class="spinr" style="transform-origin:0px 0px;animation-duration:40s"><circle r="46" fill="none" stroke="#fff" stroke-width="1.2" stroke-dasharray="30 8 4 8" opacity=".5"/><circle r="58" fill="none" stroke="${red}" stroke-width=".8" stroke-dasharray="2 20" opacity=".8"/></g></g>
+  <g class="spin" style="transform-origin:120px 120px;animation-duration:36s">${mono(0,98,46)}${mono(120,98,34)}${mono(240,98,40)}</g>
+  <ellipse cx="120" cy="220" rx="70" ry="8" fill="#000" opacity=".8"/>
+  <path d="M60 220 C90 214 150 214 180 220" stroke="#fff" stroke-width=".8" opacity=".35"/>
+  <g class="breathe" style="transform-origin:120px 220px">
+    <g class="glitchA" opacity=".55"><path d="${body}" fill="none" stroke="#3ff0ff" stroke-width="1.2" transform="translate(-2 0)"/></g>
+    <g class="glitchB" opacity=".55"><path d="${body}" fill="none" stroke="${red}" stroke-width="1.2" transform="translate(2 0)"/></g>
+    <path d="${body}" fill="url(#${id}void)"/>
+    <g clip-path="url(#${id}clip)"><g class="kdrift">${stars}</g>
+      <path d="M90 140 C110 132 130 150 150 140 M86 170 C110 162 132 180 156 170" stroke="#6a5acd" stroke-width="10" opacity=".12" fill="none"/></g>
+    <path d="${body}" fill="none" stroke="#fff" stroke-width="1.2" opacity=".8" ${G}/>
+    ${[[74,206],[84,212],[160,208],[168,214],[78,190],[164,196]].map(([x,y],i)=>`<rect class="rise" style="animation-delay:-${i*.6}s;animation-duration:3.4s" x="${x}" y="${y}" width="3" height="3" fill="#fff" opacity=".7"/>`).join('')}
+    <g class="bob" style="transform-origin:120px 62px;animation-duration:5s">
+      <path d="M106 50 C106 42 112 38 120 38 C128 38 134 42 134 50 L134 66 C134 76 128 84 120 86 C112 84 106 76 106 66Z" fill="url(#${id}mask)" stroke="#fff" stroke-width=".8" ${G}/>
+      <path d="M120 40 L118 52 L122 58 L119 70 M128 44 L131 52" stroke="#2a2a34" stroke-width=".9" fill="none"/>
+      <path d="M119 54 L121 54 L121 72 L119 72Z" fill="#000"/>
+      <path class="flick" d="M119.4 56 L120.6 56 L120.6 70 L119.4 70Z" fill="${red}" ${G}/>
+      <text x="120" y="82" font-size="6" text-anchor="middle" fill="#2a2a34" font-family="Georgia,serif" letter-spacing="1">K</text>
+    </g>
+    <path d="M112 96 L128 96 L124 104 L116 104Z" fill="${red}" opacity=".9" ${G}/>
+  </g>
+  </svg>`;
+}
+
+return {golem, hydra, serpent, knight, eye, spider, dragon, titan, beast, wraith, k: bossK};
+})();
+let BUID = 0;
 function bossSVG(b, hurt){
-  const c = `rgb(${b.rgb})`, D = '#050a14';
-  const S = `fill="${D}" stroke="${c}" stroke-width="2.4" stroke-linejoin="round" filter="url(#bGlow)"`;
-  const eyes = (x1,x2,y,r=3.2) => `<g fill="${c}" filter="url(#bGlow)"><circle cx="${x1}" cy="${y}" r="${r}"/><circle cx="${x2}" cy="${y}" r="${r}"/></g>`;
-  const A = {
-    golem:`<path ${S} d="M60 70 L140 70 L156 120 L148 176 L120 176 L116 142 L84 142 L80 176 L52 176 L44 120 Z"/><rect ${S} x="78" y="36" width="44" height="36" rx="4"/><path ${S} d="M44 92 L22 132 L36 140 L58 108 Z M156 92 L178 132 L164 140 L142 108 Z"/>${eyes(91,109,54)}`,
-    wraith:`<path ${S} d="M100 26 C72 26 58 52 60 84 C62 112 52 140 40 176 L58 164 L70 180 L84 164 L100 182 L116 164 L130 180 L142 164 L160 176 C148 140 138 112 140 84 C142 52 128 26 100 26 Z"/><path ${S} d="M60 96 C40 108 30 128 26 146 M140 96 C160 108 170 128 174 146"/>${eyes(90,110,68)}`,
-    beast:`<path ${S} d="M30 120 C30 96 52 84 80 86 L124 86 C138 70 150 60 164 62 L178 74 L168 86 C176 96 176 110 166 118 L160 150 L146 150 L144 124 L96 124 L92 150 L78 150 L74 124 C58 126 44 136 40 152 L28 152 Z"/><path ${S} d="M152 62 L156 46 L164 60 Z"/>${eyes(162,170,78,2.6)}`,
-    serpent:`<path ${S} d="M40 170 C40 140 80 140 90 120 C100 100 60 96 64 72 C68 50 100 40 122 48 C142 56 150 76 140 92 L126 84 C132 74 126 62 112 62 C94 62 88 80 104 92 C126 108 150 120 150 146 C150 172 116 180 92 176 Z"/>${eyes(122,134,66,2.6)}`,
-    knight:`<path ${S} d="M100 22 C82 22 72 36 72 56 L72 76 L128 76 L128 56 C128 36 118 22 100 22 Z"/><path ${S} d="M66 80 L134 80 L144 176 L56 176 Z"/><path ${S} d="M30 96 L62 92 L62 140 C50 146 38 140 30 128 Z"/><path ${S} d="M150 60 L156 60 L158 150 L148 150 Z M140 150 L166 150"/><path d="M80 56 L120 56" stroke="${c}" stroke-width="3" filter="url(#bGlow)"/>`,
-    eye:`<path ${S} d="M100 40 C140 40 168 70 168 100 C168 130 140 160 100 160 C60 160 32 130 32 100 C32 70 60 40 100 40 Z"/><circle cx="100" cy="100" r="30" fill="none" stroke="${c}" stroke-width="2.4" filter="url(#bGlow)"/><circle cx="100" cy="100" r="12" fill="${c}" filter="url(#bGlow)"/><path ${S} d="M60 150 C50 170 40 176 30 186 M100 160 C100 176 96 186 92 194 M140 150 C150 170 160 176 170 186" fill="none"/>`,
-    spider:`<ellipse ${S} cx="100" cy="112" rx="34" ry="28"/><circle ${S} cx="100" cy="72" r="18"/><path d="M70 104 L36 80 L20 100 M70 116 L30 116 L16 140 M72 126 L40 150 L32 176 M78 134 L58 168 L56 190 M130 104 L164 80 L180 100 M130 116 L170 116 L184 140 M128 126 L160 150 L168 176 M122 134 L142 168 L144 190" fill="none" stroke="${c}" stroke-width="2.4" filter="url(#bGlow)"/>${eyes(93,107,70,2.4)}`,
-    dragon:`<path ${S} d="M100 70 C120 70 130 90 128 116 L122 166 L78 166 L72 116 C70 90 80 70 100 70 Z"/><path ${S} d="M84 76 C60 40 30 34 12 40 C26 52 30 70 26 90 C44 84 62 90 76 104 Z M116 76 C140 40 170 34 188 40 C174 52 170 70 174 90 C156 84 138 90 124 104 Z"/><path ${S} d="M88 74 C86 52 92 36 100 30 C108 36 114 52 112 74 Z"/>${eyes(95,105,48,2.4)}`,
-    titan:`<path ${S} d="M54 70 L146 70 L162 112 L150 186 L118 186 L112 150 L88 150 L82 186 L50 186 L38 112 Z"/><path ${S} d="M74 30 L126 30 L132 70 L68 70 Z"/><path ${S} d="M74 32 L58 10 L80 26 Z M126 32 L142 10 L120 26 Z"/><path ${S} d="M38 112 L14 150 L28 160 L48 130 Z M162 112 L186 150 L172 160 L152 130 Z"/>${eyes(90,110,50)}`,
-    hydra:`<path ${S} d="M60 170 C56 140 70 122 100 122 C130 122 144 140 140 170 Z"/><path ${S} d="M84 126 C70 100 40 92 38 62 C36 46 50 40 60 48 C54 58 58 72 72 84 C84 94 94 108 96 124 Z M116 126 C130 100 160 92 162 62 C164 46 150 40 140 48 C146 58 142 72 128 84 C116 94 106 108 104 124 Z M96 124 C92 96 90 70 100 40 C110 70 108 96 104 124 Z"/>${eyes(48,58,52,2.2)}${eyes(142,152,52,2.2)}<circle cx="100" cy="48" r="2.6" fill="${c}" filter="url(#bGlow)"/>`,
-  };
-  const crown = b.chapterBoss ? `<circle cx="100" cy="104" r="92" fill="none" stroke="${c}" stroke-width="1.5" stroke-dasharray="6 6" opacity=".7" class="av-orbit2"/>` : '';
-  return `<svg viewBox="0 0 200 200" class="bossart ${hurt?'bhurt':''}"><defs><filter id="bGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <radialGradient id="bAura"><stop offset="0" stop-color="${c}" stop-opacity=".45"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient></defs>
-    <circle cx="100" cy="104" r="96" fill="url(#bAura)" class="av-aura"/>${crown}<g class="av-breathe">${A[b.arch]}</g></svg>`;
+  const id = 'bs'+(BUID++), fn = BOSSART[b.arch] || BOSSART.golem;
+  let svg = b.arch==='k' ? fn(id) : fn(id, b.rgb);
+  if(b.chapterBoss) svg = svg.replace(/<\/svg>\s*$/, `<g class="spinr" style="transform-origin:120px 120px"><circle cx="120" cy="120" r="114" fill="none" stroke="rgb(${b.rgb})" stroke-width="1.6" stroke-dasharray="7 7" opacity=".7"/></g></svg>`);
+  return `<div class="bossv ${hurt?'bhurt':''}">${svg}</div>`;
 }
 
 /* ---------- skill triggers ---------- */
@@ -2051,7 +2453,7 @@ function bossPanel(){
   else if(state.boss.attemptWeek===weekKey()) status = `<div class="center small muted" style="margin-top:10px">This week's attempt is used. The boss returns Monday.</div>`;
   else status = `<div class="center small muted" style="margin-top:10px">The challenge window opens Monday (Mon–Fri).</div>`;
   return `<div class="panel" style="border-color:rgba(${b.rgb},.6)"><span class="ptitle">WEEKLY BOSS</span>
-    <div class="center tiny muted" style="letter-spacing:.16em">${b.chapter?`CHAPTER ${b.chapter} · ${esc(b.chName.toUpperCase())}`:'ENDLESS TOWER'} · BOSS #${b.n}${b.chapterBoss?' · <span class="gold">CHAPTER BOSS</span>':''}</div>
+    <div class="center tiny muted" style="letter-spacing:.16em">${b.special?'???':b.chapter?`CHAPTER ${b.chapter} · ${esc(b.chName.toUpperCase())}`:'ENDLESS TOWER'} · BOSS #${b.n}${b.chapterBoss?' · <span class="gold">CHAPTER BOSS</span>':''}</div>
     <div class="bosswrap">${bossSVG(b)}</div>
     <div class="center" style="font-size:1.5rem;font-weight:700;color:rgb(${b.rgb})">${esc(b.name)}</div>
     <div class="center small muted" style="font-style:italic;margin:2px 0 10px">“${esc(b.lore)}”</div>
@@ -2225,6 +2627,7 @@ function vCodex(){
       <b>Lose:</b> no penalty. The same boss returns next week and never gets weaker, so grow your Power and habits first.<br>
       <b>Win:</b> XP and stat points (growing each boss), <b>Victor's Spirit</b> (+10% all XP for 3 days), a trophy, and every 10th boss gives a title and an avatar cosmetic.<br>
       <b>Overkill:</b> after a win the fight keeps going until its last day. Reach <b>${Math.round(OVERKILL_AT*100)}%</b> of the boss's HP in damage for <b>+${Math.round(OVERKILL_BONUS*100)}%</b> of its XP reward and an Overkill mark on its trophy.<br>
+      <b>Rumour:</b> somewhere early in the chapters waits a boss with no name.<br>
       <b>HP:</b> fixed per boss. Boss #1 has ${fmtN(bossInfo(1).hp)} HP; each one has about 3.5% more; chapter bosses have 1.5×.</div>`);
 }
 function vArrange(){
@@ -2472,7 +2875,7 @@ function vRecords(){
     + section('rc_titles', 'COSMETICS & TITLES', `${state.titles.length} earned`, titles)
     + `<div class="center small muted" style="margin:6px 0 10px">Ascend · ${VERSION}</div>`;
 }
-const VERSION = 'v13';
+const VERSION = 'v14';
 let prevTab = 'status';
 function vSettings(){
   const earnedTitles = TITLES.filter(t=>state.titles.includes(t.id)), g = state.wtGoal || {};
@@ -2649,6 +3052,9 @@ else if(state.upgradedV3){ delete state.upgradedV3; save(); }
 if(state.upgradedV4 && state.setupDone){ delete state.upgradedV4; save();
   notify('<b>Daily Quests expanded.</b><br><br>Your daily focus now rotates through Exercise, Steps, Mind & Wellbeing and Fasting (only what you actually do). Targets never go above the soft cap.<br><br>New: <b>Playing with pets</b> and the <b>Good Company</b> buff.', {title:'SYSTEM UPDATE', ok:'GOT IT'}); }
 else if(state.upgradedV4){ delete state.upgradedV4; save(); }
+if(!state.seenBossV14 && state.setupDone){ state.seenBossV14 = true; save();
+  notify(`<b>The bosses have been redrawn.</b><br><br>Every boss type now has new, detailed art in its chapter's colours.`, {title:'SYSTEM UPDATE', ok:'GOT IT'}); }
+else if(!state.seenBossV14){ state.seenBossV14 = true; }
 if(!state.seenAvatarV13 && state.setupDone){ state.seenAvatarV13 = true; save();
   notify(`<b>Your avatar has been redrawn.</b><br><br>Your <b>highest stat</b> picks your weapon (Sense gets a spirit fox) and your <b>second-highest</b> adds an effect around you. Every rank changes your armour, weapon, headpiece and effects.<br><br>Tap <b>See back</b> or swipe on your avatar to turn around.`, {title:'SYSTEM UPDATE', ok:'GOT IT'}); }
 else if(!state.seenAvatarV13){ state.seenAvatarV13 = true; }
