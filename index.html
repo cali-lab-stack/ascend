@@ -200,7 +200,8 @@ textarea{min-height:110px;font-family:ui-monospace,Menlo,monospace;font-size:12p
 .cxrow{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid rgba(var(--g),.12)}
 .cxrow.act{background:linear-gradient(90deg,rgba(var(--g),.14),transparent)}
 .cxrow b{font-size:.98rem}
-.cxrow .r{text-align:right;font-size:.85rem;font-weight:700;white-space:nowrap}
+.cxrow>div:first-child{flex:1;min-width:0}
+.cxrow .r{text-align:right;font-size:.85rem;font-weight:700;white-space:normal;max-width:46%;flex:0 0 auto;overflow-wrap:break-word;line-height:1.3}
 .btn.on{background:rgba(var(--g),.35);border-color:var(--glow);box-shadow:0 0 10px rgba(var(--g),.5)}
 .bosswrap{display:flex;justify-content:center;margin:2px 0 4px}
 .bossart{width:170px;height:170px;overflow:visible}
@@ -511,6 +512,7 @@ const ACTS = [
   {id:'breath',   cat:'well', g:'mind', type:'count', label:'Breathwork',    unit:'min', rate:2,  step:5,  cap:20, s:{SEN:.4}, note:'Box breathing, physiological sigh and similar.'},
   {id:'journal',  cat:'well', g:'mind', type:'once',  label:'Journaling',    xp:20, s:{SEN:.3, INT:.1}},
   {id:'gratitude',cat:'well', g:'mind', type:'once',  label:'Gratitude',     xp:10, s:{SEN:.3}, note:"Write down 3 things you're grateful for."},
+  {id:'vitamins', cat:'well', g:'mind', type:'once',  label:'Vitamins',      xp:10, s:{VIT:.3}, note:'Your daily vitamins or supplements.'},
   {id:'pets',     cat:'well', g:'mind', type:'count', label:'Pet time',      unit:'min', rate:.5, step:15, cap:30, s:{SEN:.4, VIT:.2}, note:'Playing with or caring for your pets.'},
   {id:'social',   cat:'well', g:'mind', type:'count', label:'Social time',   unit:'min', rate:.5, step:15, cap:30, s:{SEN:.3, INT:.1}, note:'Quality time in person with friends or family.'},
   {id:'water',    cat:'well', g:'mind', type:'count', label:'Water',         unit:'glasses', rate:3, step:1, cap:24, s:{VIT:.3, SEN:.3}, noQuest:true},
@@ -1641,8 +1643,25 @@ function fastTimeModal(isNew){
       if(d.getTime() > Date.now()){ toast("That time hasn't happened yet", true); return false; }
       state.fast = {start: d.getTime()}; save(); toast(isNew ? 'Fast started' : 'Start time updated'); return true; }});
 }
-function endFast(){
-  const a = A.fast, h = Math.min(20, fastHours()), d = day();
+function askFastEnd(){
+  notify(`When did your fast end?<br><span class="muted small">Running for ${fmtHM(fastHours())}.</span>`, {title:'END FAST', ok:'ENDING NOW', cancel:true,
+    extra:'<button class="btn full" id="fastEndEarlier" style="margin-bottom:10px">I ENDED EARLIER</button>',
+    onOk:()=>{ setTimeout(()=>endFast(), 0); return true; }});
+}
+function fastEndModal(){
+  const now = new Date();
+  fastDay = 'today';
+  notify(`When did your fast end?<br><span class="muted small">Started ${new Date(state.fast.start).toLocaleString([], {weekday:'short', hour:'2-digit', minute:'2-digit'})}. It's logged on today's Log.</span>`, {title:'FAST END', ok:'END FAST', cancel:true,
+    extra:`<div class="xbtns two" style="margin:0 0 10px"><button class="btn on" data-fday="today">TODAY</button><button class="btn" data-fday="yesterday">YESTERDAY</button></div>
+      <input type="time" id="fastT" value="${pad(now.getHours())}:${pad(now.getMinutes())}" style="margin-bottom:12px;font-size:22px;text-align:center">`,
+    onOk:()=>{ const v=$('#fastT').value; if(!v) return false;
+      const [h,m] = v.split(':').map(Number), d = keyDate(fastDay==='today' ? dayKey() : addDays(dayKey(),-1)); d.setHours(h,m,0,0);
+      if(d.getTime() > Date.now()){ toast("That time hasn't happened yet", true); return false; }
+      if(!state.fast || d.getTime() <= state.fast.start){ toast('The end has to be after the start', true); return false; }
+      const t = d.getTime(); setTimeout(()=>endFast(t), 0); return true; }});
+}
+function endFast(endTs){
+  const a = A.fast, d = day(), h = Math.min(20, Math.max(0, ((endTs || Date.now()) - state.fast.start)/36e5));
   let ti = -1; a.tiers.forEach((t,i)=>{ if(h>=t.h) ti=i; });
   state.fast = null;
   if(ti<0){ save(); render(); toast(`Fast ended at ${fmtHM(h)} — under 12h, no XP`); return; }
@@ -2875,7 +2894,7 @@ function vRecords(){
     + section('rc_titles', 'COSMETICS & TITLES', `${state.titles.length} earned`, titles)
     + `<div class="center small muted" style="margin:6px 0 10px">Ascend · ${VERSION}</div>`;
 }
-const VERSION = 'v14';
+const VERSION = 'v15';
 let prevTab = 'status';
 function vSettings(){
   const earnedTitles = TITLES.filter(t=>state.titles.includes(t.id)), g = state.wtGoal || {};
@@ -2981,7 +3000,8 @@ document.addEventListener('click', ev=>{
     case 'fastStart': return askFastStart();
     case 'fastEarlier': nextModal(); setTimeout(()=>fastTimeModal(true), 30); return;
     case 'bossGo': return notify(`Start the fight against <b>${esc(bossInfo(state.boss.n).name)}</b>?<br><br>You get <b>${BOSS_DAYS} days</b> (ends ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][weekdayIdx(addDays(dayKey(),BOSS_DAYS-1))]} at midnight). Every XP you earn deals damage × your Power, including what you've already earned today.<br><br><span class="muted small">One attempt per week. Losing costs nothing.</span>`, {title:'CHALLENGE', ok:'FIGHT', cancel:true, onOk:()=>{ setTimeout(startBoss, 0); return true; }});
-    case 'fastEnd': return endFast();
+    case 'fastEnd': return askFastEnd();
+    case 'fastEndEarlier': nextModal(); setTimeout(fastEndModal, 30); return;
     case 'fastAdj': return fastTimeModal(false);
     case 'saveSetup': {
       document.querySelectorAll('[data-en]').forEach(c=>{ state.enabled[c.dataset.en]=c.checked; });
