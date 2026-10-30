@@ -284,6 +284,38 @@ body.shake #view{animation:shake .5s cubic-bezier(.36,.07,.19,.97) both}
 .sb-rate b{display:block;font-size:1.2rem;line-height:1.15;white-space:nowrap}
 .sb-rate small{display:block;font-size:.72rem;color:var(--muted);white-space:nowrap}
 .bar.boss.goldb i{background:linear-gradient(90deg,#c9932b,#ffd166);box-shadow:0 0 10px var(--gold)}
+/* avatar v13 */
+.avwrap{position:relative}
+.av5{position:relative;width:236px;height:316px;margin:0 auto}
+.av5 .avsvg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.av5.dim .avsvg:not(.avcos){opacity:.62;filter:saturate(.5)}
+.av5.hurt::before{content:"";position:absolute;inset:6% 12%;border-radius:50%;background:radial-gradient(ellipse,rgba(255,77,106,.38),rgba(255,77,106,0) 70%);animation:xflick 1.1s steps(3) infinite}
+.av5 .avflip{transition:transform .16s ease-in;transform-box:view-box;transform-origin:120px 170px}
+.av5.squash .avflip{transform:scaleX(.04)}
+.av5 .breathe{animation:xbreathe 4.2s ease-in-out infinite;transform-box:view-box}
+.av5 .sway{animation:xsway 5s ease-in-out infinite;transform-box:view-box}
+.av5 .pulse{animation:xpulse 3.4s ease-in-out infinite;transform-box:view-box}
+.av5 .flick{animation:xflick2 2.6s ease-in-out infinite}
+.av5 .spin{animation:xspin 14s linear infinite;transform-box:view-box}
+.av5 .spinf{animation:xspin 5s linear infinite;transform-box:view-box}
+.av5 .spinr{animation:xspin 22s linear infinite reverse;transform-box:view-box}
+.av5 .rise{animation:xrise 4s linear infinite}
+.av5 .rises{animation:xrises 2.6s linear infinite}
+.av5 .bob{animation:xbob 3s ease-in-out infinite;transform-box:view-box}
+.av5 .glowp{animation:xglowp 2.2s ease-in-out infinite}
+.av5 .drift{animation:xdrift 4s linear infinite}
+@keyframes xbreathe{50%{transform:translateY(-1.4px) scaleY(1.005)}}
+@keyframes xsway{50%{transform:skewX(-4deg)}}
+@keyframes xpulse{50%{opacity:.55;transform:scale(1.04)}}
+@keyframes xflick{0%{opacity:.9}33%{opacity:.35}66%{opacity:.7}}
+@keyframes xflick2{0%,100%{opacity:1}45%{opacity:.7}55%{opacity:.95}}
+@keyframes xspin{to{transform:rotate(360deg)}}
+@keyframes xrise{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(-130px);opacity:0}}
+@keyframes xrises{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(-40px);opacity:0}}
+@keyframes xbob{50%{transform:translateY(-3px)}}
+@keyframes xglowp{50%{opacity:.45}}
+@keyframes xdrift{0%{transform:translateX(-26px);opacity:0}25%{opacity:1}75%{opacity:1}100%{transform:translateX(26px);opacity:0}}
+@media (prefers-reduced-motion: reduce){.av5 *{animation:none!important}}
 .hint{border:1px dashed rgba(255,209,102,.6);color:#ffe7a8;padding:10px 12px;border-radius:5px;font-size:.9rem;margin-bottom:14px}
 </style>
 </head>
@@ -1357,11 +1389,510 @@ function clearPenalty(){
   save(); render();
 }
 
+/* ---------- avatar art (v13): drawn in code; see art-samples-v5-1.html ---------- */
+const AV = (()=>{
+const RK = [
+  {r:'E',  n:'Awakened',  rgb:'159,179,200'}, {r:'D', n:'Initiate', rgb:'77,255,181'}, {r:'C', n:'Adept', rgb:'79,195,255'},
+  {r:'B',  n:'Veteran',   rgb:'180,140,255'}, {r:'A', n:'Elite', rgb:'255,85,119'},   {r:'S', n:'Legend', rgb:'255,209,102'},
+  {r:'S+', n:'Mythic',    rgb:'255,224,138', acc:'#ffffff'}, {r:'SS', n:'Sovereign', rgb:'255,241,184', acc:'#ffd166'}, {r:'SSS', n:'Ascendant', rgb:'240,246,255', acc:'#ffd166'}];
+const STATN = {STR:'Strength', AGI:'Agility', VIT:'Vitality', INT:'Intellect', SEN:'Sense'};
+const WEAP  = {STR:'Greatsword', AGI:'Twin warglaives', VIT:'Shield & mace', INT:'Staff', SEN:'Spirit fox'};
+const FXN   = {STR:'Rising stones', AGI:'Wind wisps', VIT:'Healing motes', INT:'Glyph circles', SEN:'Spirit lights'};
+const LOOK = {
+  INT:['Short gnarled branch','Forked top holding a stone','Iron hook with a hanging crystal','Crescent moon cradling a crystal','Silver claw gripping a large crystal','Open ring, floating crystal, rune ring','Twin spires, trailing light','A star with orbiting shards, cracked with light','Shaft of light, prismatic halo, wings'],
+  AGI:['Carved bone crescents','Iron crescents','Steel S-curve, blade at both ends','Serrated with hooked tips','Engraved silver, inner blade over the hand','Larger, edges glowing green','Second blade layer, purple runes, motion trail','Green→purple energy edges','Big glowing warglaives, energy blades, afterimages'],
+  STR:['Worn short sword, chipped edge','Longsword, fuller, curved guard, ring pommel','Wide blade with a crossguard','Two-hander with a notched back','Serrated edge, winged gold guard','Jagged blade with runes','Molten blade: glowing cracks, sparks','Wavy flaming blade','Colossal radiant runeblade'],
+  VIT:['Big wooden round shield · studded club','Iron rim and boss · iron-banded club','Heater shield · flanged mace','Kite shield · spiked ball','Spiked tower shield · winged flanges','Winged shield, glowing emblem · glowing mace','Floating hexagon shield · flail of light','Crystal hexagon shield · crystal mace','Radiant shield · star mace'],
+  SEN:['A faint wisp','Tiny kit: big head, big glowing eyes, stubby tail','Young fox: flaming paws, chest mark, glowing paw prints','Flame tail, fiery ear tufts','Two tails, floating rune collar','Three tails, glowing forehead crest','Five tails, trail of spirit petals','Seven tails, larger, on the ground beside you','Nine tails become your wings of light; antlers of light'],
+};
+const HEADLOOK = ['No headpiece','Cloth headband','Leather band with a metal plate','Headband with a small gem','Silver circlet','Crown','Crown with floating shards','Crown with a light halo','Radiant halo-crown'];
+const ARMORLOOK = ['Plain tunic, rope belt','+ Leather bracers, belt pouches','+ Chest plate','+ Shoulder armour and cape','+ Engraved gold trims, knee guards','+ Light rays behind you','+ Floating armour fragments','+ Glowing armour','+ Wings of light'];
+let UID = 0;
+const mapD = (d, fx) => d.replace(/(-?\d+(?:\.\d+)?)[ ,](-?\d+(?:\.\d+)?)/g, (m,x,y)=>`${fx(+x).toFixed(1)} ${y}`);
+const f1 = n => (+n).toFixed(1);
+
+function defs(id, rgb, acc){
+  const c=`rgb(${rgb})`, ca=a=>`rgba(${rgb},${a})`;
+  return `<filter id="${id}g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <filter id="${id}gb" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <radialGradient id="${id}aura"><stop offset="0" stop-color="${c}" stop-opacity=".5"/><stop offset=".55" stop-color="${c}" stop-opacity=".1"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>
+  <radialGradient id="${id}orb"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="${acc}"/><stop offset="1" stop-color="${acc}" stop-opacity="0"/></radialGradient>
+  <radialGradient id="${id}spirit" cx="45%" cy="40%" r="70%"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset=".5" stop-color="${acc}" stop-opacity=".55"/><stop offset="1" stop-color="${c}" stop-opacity=".18"/></radialGradient>
+  <linearGradient id="${id}coat" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1c263c"/><stop offset=".5" stop-color="#0d1424"/><stop offset="1" stop-color="#05080f"/></linearGradient>
+  <linearGradient id="${id}shade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".55"/></linearGradient>
+  <linearGradient id="${id}hair" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f3a55"/><stop offset=".55" stop-color="#151c2e"/><stop offset="1" stop-color="#080b14"/></linearGradient>
+  <linearGradient id="${id}skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a5670"/><stop offset=".45" stop-color="#2a3347"/><stop offset="1" stop-color="#121826"/></linearGradient>
+  <radialGradient id="${id}face" cx="50%" cy="40%" r="62%"><stop offset="0" stop-color="${ca(.22)}"/><stop offset=".55" stop-color="#05070d"/><stop offset="1" stop-color="#000"/></radialGradient>
+  <linearGradient id="${id}steel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6a7894"/><stop offset=".35" stop-color="#2c354c"/><stop offset="1" stop-color="#0c111d"/></linearGradient>
+  <linearGradient id="${id}iron" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6d7584"/><stop offset=".5" stop-color="#a9b1be"/><stop offset="1" stop-color="#454b57"/></linearGradient>
+  <linearGradient id="${id}darkiron" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3a3f48"/><stop offset=".5" stop-color="#6b717c"/><stop offset="1" stop-color="#2a2e35"/></linearGradient>
+  <linearGradient id="${id}blade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7d8798"/><stop offset=".5" stop-color="#e6ebf2"/><stop offset="1" stop-color="#6b7486"/></linearGradient>
+  <linearGradient id="${id}gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0b8"/><stop offset=".45" stop-color="#e8b84a"/><stop offset="1" stop-color="#8a6420"/></linearGradient>
+  <linearGradient id="${id}silverM" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9aa6b8"/><stop offset=".5" stop-color="#f1f5fb"/><stop offset="1" stop-color="#8590a3"/></linearGradient>
+  <linearGradient id="${id}leather" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a3a2c"/><stop offset="1" stop-color="#1c1510"/></linearGradient>
+  <linearGradient id="${id}wood" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5a3d26"/><stop offset=".5" stop-color="#8a6240"/><stop offset="1" stop-color="#3a2717"/></linearGradient>
+  <radialGradient id="${id}woodR"><stop offset="0" stop-color="#9a7048"/><stop offset=".7" stop-color="#6a4a2e"/><stop offset="1" stop-color="#3e2a18"/></radialGradient>
+  <linearGradient id="${id}crystal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".4" stop-color="${acc}"/><stop offset="1" stop-color="${c}" stop-opacity=".6"/></linearGradient>
+  <linearGradient id="${id}radiant" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffe9a8"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#e8c060"/></linearGradient>
+  <linearGradient id="${id}radiantV" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#fff2c4"/><stop offset="1" stop-color="#e8c060" stop-opacity=".5"/></linearGradient>
+  <linearGradient id="${id}fire" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff5a1f"/><stop offset=".5" stop-color="#ffb347"/><stop offset="1" stop-color="#fff3c0"/></linearGradient>
+  <linearGradient id="${id}pants" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0c1222"/><stop offset="1" stop-color="#070b15"/></linearGradient>
+  <linearGradient id="${id}capeIn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d1326"/><stop offset="1" stop-color="#05070e"/></linearGradient>
+  <linearGradient id="${id}cape" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${ca(.45)}"/><stop offset=".4" stop-color="${ca(.16)}"/><stop offset="1" stop-color="${ca(0)}"/></linearGradient>
+  <linearGradient id="${id}trail" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${acc}" stop-opacity=".8"/><stop offset="1" stop-color="${acc}" stop-opacity="0"/></linearGradient>
+  <linearGradient id="${id}wing" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${acc}" stop-opacity="0"/><stop offset=".5" stop-color="${acc}" stop-opacity=".5"/><stop offset="1" stop-color="#fff" stop-opacity=".85"/></linearGradient>
+  <linearGradient id="${id}ray" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${acc}" stop-opacity="0"/><stop offset="1" stop-color="${acc}" stop-opacity=".55"/></linearGradient>
+  <linearGradient id="${id}column" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#4dffb5" stop-opacity=".45"/><stop offset="1" stop-color="#4dffb5" stop-opacity="0"/></linearGradient>
+  <linearGradient id="${id}bone" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#efe6cf"/><stop offset=".6" stop-color="#c8bb98"/><stop offset="1" stop-color="#8a7d60"/></linearGradient>
+  <linearGradient id="${id}glaiveG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4dffb5"/><stop offset=".55" stop-color="#7fd8ff"/><stop offset="1" stop-color="#b48cff"/></linearGradient>
+  <radialGradient id="${id}starfill" cx="45%" cy="40%" r="75%"><stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset=".45" stop-color="#cbb8ff" stop-opacity=".7"/><stop offset="1" stop-color="#3a2a7a" stop-opacity=".55"/></radialGradient>
+  <linearGradient id="${id}prism" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4dffb5"/><stop offset=".25" stop-color="#4fc3ff"/><stop offset=".5" stop-color="#b48cff"/><stop offset=".75" stop-color="#ff5577"/><stop offset="1" stop-color="#ffd166"/></linearGradient>`;
+}
+/* ===== WEAPONS — authored in FRONT coordinates. Screen-right hand ≈ (151,212), screen-left forearm ≈ (89,205). ===== */
+const diamond = (x,y,w,h) => `M${x} ${y-h/2} L${x+w/2} ${y} L${x} ${y+h/2} L${x-w/2} ${y}Z`;
+const star = (x,y,R,r,n=8,rot=-90) => { let d=''; for(let i=0;i<n*2;i++){ const a=(rot+i*180/n)*Math.PI/180, rr=i%2?r:R; d+=(i?'L':'M')+f1(x+Math.cos(a)*rr)+' '+f1(y+Math.sin(a)*rr); } return d+'Z'; };
+const hexD = (x,y,R) => { let d=''; for(let i=0;i<6;i++){ const a=(i*60-90)*Math.PI/180; d+=(i?'L':'M')+f1(x+Math.cos(a)*R)+' '+f1(y+Math.sin(a)*R); } return d+'Z'; };
+
+function staffW(r, K){
+  const {c, ca, acc, id, G} = K, o = [];
+  const shaft = (top, fill, w=4) => `<path d="M${152-w/2} ${top} L${152+w/2} ${top} L${152+w/2+.4} 306 L${152-w/2-.4} 306Z" fill="${fill}" stroke="rgba(0,0,0,.45)" stroke-width=".6"/>`;
+  if(r===0){
+    o.push(`<path d="M151 306 C149 272 154 244 151 214 C148 184 155 156 151 132 C149 122 152 114 150 108" fill="none" stroke="url(#${id}wood)" stroke-width="5" stroke-linecap="round"/>
+      <path d="M150 170 L144 162 M152 236 L158 230" stroke="#5a3d26" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="152" cy="184" r="2.6" fill="#3a2717"/><circle cx="151" cy="148" r="2.2" fill="#3a2717"/>
+      <circle cx="150" cy="106" r="5.5" fill="url(#${id}woodR)" stroke="#2c1d12" stroke-width=".8"/><circle cx="145" cy="111" r="3.2" fill="url(#${id}woodR)"/><circle cx="155.5" cy="103" r="3.4" fill="url(#${id}woodR)"/>
+      <path d="M150 112 L141 99" stroke="#5a3d26" stroke-width="1.8" stroke-linecap="round"/>`);
+  } else if(r===1){
+    o.push(shaft(92, `url(#${id}wood)`, 4.2),
+      `<path d="M152 96 C150 88 146 82 143 70 M152 96 C154 88 158 82 161 70" fill="none" stroke="url(#${id}wood)" stroke-width="3.4" stroke-linecap="round"/>
+      <circle cx="152" cy="77" r="6.5" fill="#8a909c" stroke="#4a4f59" stroke-width="1"/><path d="M147 74 Q152 70 157 74" stroke="#c4c9d2" stroke-width="1" fill="none"/>
+      <path d="M145 80 L159 76 M145 76 L159 80" stroke="#a8875e" stroke-width="1.1"/>`);
+  } else if(r===2){
+    o.push(shaft(70, `url(#${id}wood)`, 4.4),
+      `<path d="M150 82 L154 82 M150 90 L154 90" stroke="url(#${id}iron)" stroke-width="3"/>
+      <path d="M152 74 L152 56 C152 40 172 38 172 54 C172 61 166 63 164 58" fill="none" stroke="url(#${id}iron)" stroke-width="4" stroke-linecap="round"/>
+      <path d="M172 58 L172 68" stroke="#a9b1be" stroke-width="1.2" stroke-dasharray="2 1.5"/>
+      <path class="glowp" d="${diamond(172,78,11,20)}" fill="url(#${id}crystal)" stroke="${c}" stroke-width="1" ${G}/>
+      <path d="M151 120 L153 124 M151 150 L153 146 M151 190 L153 194" stroke="${ca(.8)}" stroke-width="1"/>`);
+  } else if(r===3){
+    o.push(shaft(60, `url(#${id}darkiron)`, 4.4),
+      `<path d="M150 200 L154 200 M150 206 L154 206 M150 212 L154 212 M150 218 L154 218" stroke="#3a2a1c" stroke-width="2"/>
+      <path d="M134 32 C132 60 172 60 170 32 C164 50 140 50 134 32Z" fill="url(#${id}steel)" stroke="${c}" stroke-width="1.4" ${G}/>
+      <path class="glowp" d="${diamond(152,34,12,20)}" fill="url(#${id}crystal)" stroke="#fff" stroke-width=".6" ${G}/>
+      <g transform="translate(152 36)"><g class="spinf" style="transform-origin:0px 0px"><circle cx="17" cy="0" r="1.6" fill="${acc}" ${G}/><circle cx="-17" cy="0" r="1.3" fill="${acc}" ${G}/><circle cx="0" cy="-17" r="1.1" fill="#fff" ${G}/></g></g>`);
+  } else if(r===4){
+    o.push(shaft(58, `url(#${id}silverM)`, 4.6),
+      `<g class="sway" style="transform-origin:152px 62px;animation-duration:3s"><path d="M148 62 C142 74 146 86 138 100 M156 62 C162 76 158 88 166 104" fill="none" stroke="${c}" stroke-width="2.6" stroke-linecap="round" opacity=".9" ${G}/></g>
+      <path d="M152 60 C140 54 134 42 139 24 M152 60 C164 54 170 42 165 24 M152 58 L152 18" fill="none" stroke="url(#${id}silverM)" stroke-width="3.2" stroke-linecap="round"/>
+      <path class="glowp" d="${diamond(152,40,20,34)}" fill="url(#${id}crystal)" stroke="#fff" stroke-width=".8" ${G}/>
+      <circle cx="152" cy="62" r="3.4" fill="url(#${id}silverM)" stroke="${c}" stroke-width=".8"/>`);
+  } else if(r===5){
+    o.push(shaft(64, `url(#${id}gold)`, 4.6),
+      `<circle cx="152" cy="40" r="16" fill="none" stroke="url(#${id}gold)" stroke-width="4.2"/><circle cx="152" cy="40" r="16" fill="none" stroke="${acc}" stroke-width="1" opacity=".8" ${G}/>
+      <path d="M152 56 L152 64" stroke="url(#${id}gold)" stroke-width="4"/>
+      <g class="bob" style="transform-origin:152px 40px"><path d="${diamond(152,40,11,20)}" fill="url(#${id}crystal)" stroke="#fff" stroke-width=".7" ${G}/></g>
+      <g transform="translate(152 40) scale(1 .45)"><g class="spin" style="transform-origin:0px 0px;animation-duration:8s"><circle r="27" fill="none" stroke="${c}" stroke-width="1.6" stroke-dasharray="5 4" ${G}/></g></g>`);
+  } else if(r===6){
+    o.push(shaft(96, `url(#${id}gold)`, 4.8),
+      `<path d="M150 98 C142 78 138 56 141 24 M154 98 C162 78 166 56 163 24" fill="none" stroke="url(#${id}gold)" stroke-width="4" stroke-linecap="round"/>
+      <path d="${diamond(141,22,6,10)} ${diamond(163,22,6,10)}" fill="${acc}" ${G}/>
+      <rect x="149" y="48" width="6" height="70" fill="url(#${id}trail)" opacity=".8"/>
+      <g class="bob" style="transform-origin:152px 46px"><path d="${diamond(152,46,14,24)}" fill="url(#${id}crystal)" stroke="#fff" stroke-width=".8" ${G}/></g>
+      <g transform="translate(152 46) scale(1 .4)"><g class="spin" style="transform-origin:0px 0px;animation-duration:7s"><circle r="22" fill="none" stroke="${c}" stroke-width="1.4" stroke-dasharray="4 4" ${G}/></g></g>
+      <g transform="translate(152 46) scale(.45 1)"><g class="spinr" style="transform-origin:0px 0px;animation-duration:9s"><circle r="26" fill="none" stroke="${acc}" stroke-width="1.2" stroke-dasharray="3 5" ${G}/></g></g>`);
+  } else if(r===7){
+    o.push(shaft(58, '#1a1f2c', 5),
+      `<path d="M152 70 L150 90 L154 104 L150 126 L153 150 L150 176 L154 200 L151 232 L153 270 L151 300" fill="none" stroke="${acc}" stroke-width="1.3" class="glowp" ${G}/>
+      <circle cx="152" cy="36" r="16" fill="url(#${id}orb)" opacity=".8"/>
+      <path d="${star(152,36,15,5.5,8)}" fill="url(#${id}radiant)" stroke="#fff" stroke-width=".6" ${G}/>
+      <g transform="translate(152 36)"><g class="spinf" style="transform-origin:0px 0px;animation-duration:6s">${[0,90,180,270].map(a=>{const x=Math.cos(a*Math.PI/180)*25, y=Math.sin(a*Math.PI/180)*25; return `<path d="${diamond(x,y,5,10)}" fill="url(#${id}crystal)" ${G}/>`;}).join('')}</g></g>`);
+  } else {
+    o.push(`<rect x="148.5" y="44" width="7" height="262" rx="3" fill="url(#${id}radiantV)" filter="url(#${id}gb)"/>
+      <g ${G} fill="url(#${id}wing)"><path d="M150 44 C138 40 126 30 120 14 C130 22 140 26 150 32Z"/><path d="M150 50 C140 48 128 42 122 32 C132 38 142 40 150 42Z"/><path d="M154 44 C166 40 178 30 184 14 C174 22 164 26 154 32Z"/><path d="M154 50 C164 48 176 42 182 32 C172 38 162 40 154 42Z"/></g>
+      <circle cx="152" cy="28" r="18" fill="url(#${id}orb)"/>
+      <path d="${star(152,28,13,4,8)}" fill="#fff" ${G}/>
+      <g transform="translate(152 28) scale(1 .35)"><g class="spinr" style="transform-origin:0px 0px"><circle r="30" fill="none" stroke="url(#${id}prism)" stroke-width="3" stroke-dasharray="9 5" ${G}/></g></g>
+      ${[[136,70],[170,90],[140,130],[166,160],[138,200]].map(([x,y],i)=>`<circle class="rises" style="animation-delay:-${i*.5}s" cx="${x}" cy="${y}" r="1.4" fill="#fff" ${G}/>`).join('')}`);
+  }
+  return {held:o.join(''), grip:'R', box:[114, 2, 76, 150]};
+}
+
+function chakram(r, K, R){
+  const {c, ca, acc, id, G} = K, o=[];
+  const ring = (rr, stroke, w) => `<circle r="${f1(rr)}" fill="none" stroke="${stroke}" stroke-width="${w}"/>`;
+  if(r===0){ o.push(ring(R, `url(#${id}wood)`, 3.6), ring(R-3.5, '#3a2717', .8), `<path d="M${-R+1} -3 L${-R+1} 3" stroke="url(#${id}leather)" stroke-width="5"/>`); }
+  else if(r===1){ o.push(ring(R, `url(#${id}darkiron)`, 4)); for(let i=0;i<6;i++){ const a=i*60; o.push(`<rect x="${f1(R-3)}" y="-1.4" width="6" height="2.8" fill="#0b0f18" transform="rotate(${a})"/>`); } o.push(ring(R-4,'#2a2e35',.8)); }
+  else if(r===2){ o.push(ring(R, `url(#${id}iron)`, 3.4)); for(let i=0;i<4;i++) o.push(`<path d="M${f1(R-1)} -4 L${f1(R+8)} 0 L${f1(R-1)} 4Z" fill="url(#${id}blade)" stroke="#2a2e35" stroke-width=".5" transform="rotate(${i*90})"/>`); }
+  else if(r===3){ const cr = `M${f1(R+4)} 0 A${f1(R+4)} ${f1(R+4)} 0 0 1 ${f1(-R-4)} 0 L${f1(-R+1)} 3 A${f1(R-1)} ${f1(R-1)} 0 0 0 ${f1(R-1)} 3Z`;
+    o.push(`<path d="${cr}" fill="url(#${id}blade)" stroke="${c}" stroke-width=".9"/><path d="${cr}" fill="url(#${id}blade)" stroke="${c}" stroke-width=".9" transform="rotate(180)"/>`, ring(R-3, ca(.6), 1)); }
+  else if(r===4){ o.push(ring(R, `url(#${id}silverM)`, 3.4)); for(let i=0;i<3;i++) o.push(`<path d="M${f1(R*.4)} ${f1(-R-1)} C${f1(R*1.2)} ${f1(-R-2)} ${f1(R+9)} ${f1(-R*.4)} ${f1(R+6)} ${f1(R*.4)} C${f1(R+2)} 0 ${f1(R)} ${f1(-R*.5)} ${f1(R*.4)} ${f1(-R+2)}Z" fill="url(#${id}silverM)" stroke="${c}" stroke-width=".8" transform="rotate(${i*120})"/>`); o.push(`<circle r="2" fill="${c}" ${G}/>`); }
+  else if(r===5){ o.push(`<circle r="${f1(R-3)}" fill="url(#${id}orb)" opacity=".85"/>`, ring(R, `url(#${id}gold)`, 3.6)); for(let i=0;i<4;i++) o.push(`<path d="M${f1(R)} -5 Q${f1(R+10)} 0 ${f1(R+2)} 9 Q${f1(R+4)} 2 ${f1(R)} -1Z" fill="url(#${id}gold)" stroke="${acc}" stroke-width=".6" transform="rotate(${i*90})"/>`); }
+  else if(r===6){ o.push(`<g opacity=".3" transform="rotate(25)">${ring(R, acc, 3)}</g>`, ring(R, `url(#${id}gold)`, 3.4), `<g class="spinr" style="transform-origin:0px 0px;animation-duration:2.4s">${ring(R*.58, acc, 2.4)}${[0,120,240].map(a=>`<path d="M${f1(R*.58)} -3 L${f1(R*.58+6)} 0 L${f1(R*.58)} 3Z" fill="${acc}" transform="rotate(${a})"/>`).join('')}</g>`); for(let i=0;i<6;i++) o.push(`<path d="M${f1(R)} -3 L${f1(R+7)} 0 L${f1(R)} 3Z" fill="url(#${id}gold)" transform="rotate(${i*60})"/>`); }
+  else if(r===7){ for(let i=0;i<5;i++) o.push(`<path d="M0 ${f1(-R*.2)} Q${f1(R*.7)} ${f1(-R*.5)} ${f1(R+4)} ${f1(-R*.2)} Q${f1(R*.6)} ${f1(-R*.15)} 0 ${f1(R*.15)}Z" fill="${acc}" opacity=".75" transform="rotate(${i*72})" ${G}/>`); o.push(`<circle r="${f1(R*.25)}" fill="none" stroke="#fff" stroke-width="1" opacity=".6"/>`); }
+  else { o.push(`<circle r="${f1(R+6)}" fill="url(#${id}orb)" opacity=".7"/>`); for(let i=0;i<12;i++) o.push(`<path d="M${f1(R+1)} -1.6 L${f1(R+11)} 0 L${f1(R+1)} 1.6Z" fill="#fff" transform="rotate(${i*30})"/>`); o.push(`<circle r="${f1(R)}" fill="none" stroke="url(#${id}radiant)" stroke-width="4.5" ${G}/>`, `<circle r="${f1(R*.45)}" fill="#fff" ${G}/>`); }
+  return o.join('');
+}
+function chakramW(r, K){
+  const {c, acc, id, G} = K, R = 9 + r*1.15, dur = (2.6 - r*.18).toFixed(2);
+  const one = (x,y,rev) => `<g transform="translate(${x} ${y})"><g class="${rev?'spinr':'spinf'}" style="transform-origin:0px 0px;animation-duration:${dur}s" ${r>=3?G:''}>${chakram(r, K, R)}</g>
+    ${r>=3?`<path d="M${rev?6:-6} ${f1(-R-3)} A${f1(R+4)} ${f1(R+4)} 0 0 ${rev?1:0} ${rev?f1(R+4):f1(-R-4)} 0" fill="none" stroke="${acc}" stroke-width="1.4" opacity=".55" stroke-linecap="round"/>`:''}
+    ${r>=8?`<g class="spin" style="transform-origin:0px 0px;animation-duration:3s"><circle cx="${f1(R+15)}" cy="0" r="1.6" fill="#fff" ${G}/><circle cx="${f1(-R-15)}" cy="0" r="1.3" fill="${acc}" ${G}/></g>`:''}</g>`;
+  return {held: `<g class="bob" style="animation-duration:2.6s">${one(64,206,false)}</g><g class="bob" style="animation-duration:2.6s;animation-delay:-1.3s">${one(176,206,true)}</g>`, box:[140, 170, 72, 72]};
+}
+
+/* Greatsword resting on the shoulder: the screen-right arm is bent (hand ≈ 146,132) and the blade lies over the shoulder. */
+function swordW(r, K){
+  const {c, ca, acc, id, G} = K, o=[];
+  const L = [70,80,88,98,104,110,116,120,132][r];
+  const grip = (len=18, fill=`url(#${id}leather)`) => `<rect x="-2.6" y="-6" width="5.2" height="${len}" rx="1.4" fill="${fill}" stroke="rgba(0,0,0,.5)" stroke-width=".5"/>${Array.from({length:Math.floor(len/4)},(_,i)=>`<path d="M-2.6 ${-4+i*4} L2.6 ${-2+i*4}" stroke="rgba(255,255,255,.15)" stroke-width=".7"/>`).join('')}`;
+  const pom = (y, fill) => `<circle cx="0" cy="${y}" r="3.4" fill="${fill}" stroke="rgba(0,0,0,.5)" stroke-width=".5"/>`;
+  if(r===0){ o.push(`<path d="M-4.6 -8 L-4.6 ${-8-L+8} L0 ${-8-L} L4.6 ${-8-L+8} L4.6 -8Z" fill="url(#${id}iron)" stroke="#2a2e35" stroke-width=".7"/><path d="M4.6 -40 L2.2 -43 L4.6 -46Z M-4.6 -58 L-2.6 -60 L-4.6 -62Z" fill="#0b0f18"/><path d="M0 -10 L0 ${-L+2}" stroke="rgba(0,0,0,.25)" stroke-width=".8"/><circle cx="-1.6" cy="-24" r="1.3" fill="#5a4030" opacity=".7"/><circle cx="1.8" cy="-52" r="1" fill="#5a4030" opacity=".6"/>`, `<rect x="-11" y="-10" width="22" height="3.6" rx="1" fill="url(#${id}darkiron)"/>`, grip(16), pom(12, `url(#${id}darkiron)`)); }
+  else if(r===1){ o.push(`<path d="M-5.2 -8 L-5.2 ${-8-L+9} L0 ${-8-L} L5.2 ${-8-L+9} L5.2 -8Z" fill="url(#${id}blade)" stroke="#3a4050" stroke-width=".7"/><path d="M0 -12 L0 ${-L+10}" stroke="rgba(0,0,0,.32)" stroke-width="1.8"/>`, `<path d="M-15 -12 Q-13 -7 -8 -9 L8 -9 Q13 -7 15 -12 L15.5 -8.5 Q12 -5 8 -6 L-8 -6 Q-12 -5 -15.5 -8.5Z" fill="url(#${id}iron)" stroke="#2a2e35" stroke-width=".5"/>`, grip(18), `<circle cx="0" cy="15" r="3.6" fill="none" stroke="url(#${id}iron)" stroke-width="2"/>`); }
+  else if(r===2){ o.push(`<path d="M-7.5 -8 L-7.5 ${-8-L+10} L0 ${-8-L} L7.5 ${-8-L+10} L7.5 -8Z" fill="url(#${id}blade)" stroke="${ca(.7)}" stroke-width=".8"/><path d="M0 -12 L0 ${-L+6}" stroke="rgba(0,0,0,.3)" stroke-width="2"/>`, `<path d="M-18 -6 Q-17 -11 -10 -10 L10 -10 Q17 -11 18 -6 L12 -7 L-12 -7Z" fill="url(#${id}iron)" stroke="#2a2e35" stroke-width=".6"/>`, grip(20), pom(16, `url(#${id}iron)`)); }
+  else if(r===3){ let e=''; for(let y=-20;y>-8-L+20;y-=8) e+=`L7 ${y} L4 ${y-4} `; o.push(`<path d="M-7 -8 L-7 ${-8-L+10} L0 ${-8-L} L7 ${-8-L+10} ${''} L7 ${-8-L+20} ${''}" fill="none"/>`,
+      `<path d="M-7 -8 L-7 ${-8-L+10} L0 ${-8-L} L7 ${-8-L+10} L7 -20 Z" fill="url(#${id}blade)" stroke="${ca(.7)}" stroke-width=".8"/>`,
+      `<path d="M7 -22 ${e}" fill="none" stroke="#0b0f18" stroke-width="1.6"/><path d="M-1 -12 L-1 ${-L+8}" stroke="rgba(0,0,0,.3)" stroke-width="2.4"/>`,
+      `<rect x="-17" y="-11" width="34" height="5" rx="2" fill="url(#${id}steel)" stroke="${c}" stroke-width=".8"/>`, grip(26), pom(22, `url(#${id}steel)`)); }
+  else if(r===4){ let lE='', rE=''; for(let y=-14;y>-8-L+14;y-=7){ lE+=`L-7 ${y} L-10 ${y-3.5} `; rE=`L10 ${y-3.5} L7 ${y} `+rE; }
+    o.push(`<path d="M-7 -8 ${lE} L-7 ${-8-L+12} L0 ${-8-L} L7 ${-8-L+12} ${rE} L7 -8Z" fill="url(#${id}blade)" stroke="${c}" stroke-width=".8"/><path d="M0 -12 L0 ${-L+6}" stroke="url(#${id}gold)" stroke-width="2.2"/>`,
+      `<path d="M0 -8 C-8 -6 -18 -12 -24 -24 C-16 -16 -8 -13 0 -12 C8 -13 16 -16 24 -24 C18 -12 8 -6 0 -8Z" fill="url(#${id}gold)" stroke="#8a6420" stroke-width=".6"/>`, grip(24), pom(20, `url(#${id}gold)`)); }
+  else if(r===5){ o.push(`<path d="M-8 -8 L-9 -30 L-5 -38 L-10 -52 L-6 -64 L-11 -80 L-6 ${-8-L+14} L0 ${-8-L} L7 ${-8-L+16} L11 -84 L6 -70 L10 -56 L6 -44 L9 -30 L8 -8Z" fill="url(#${id}steel)" stroke="${c}" stroke-width="1.1" ${G}/>`,
+      `<text x="0" y="-26" font-size="7" text-anchor="middle" fill="${acc}" class="glowp" ${G}>ᚠ</text><text x="0" y="-48" font-size="7" text-anchor="middle" fill="${acc}" class="glowp" ${G}>ᚱ</text><text x="0" y="-70" font-size="7" text-anchor="middle" fill="${acc}" class="glowp" ${G}>ᛟ</text><text x="0" y="-92" font-size="7" text-anchor="middle" fill="${acc}" class="glowp" ${G}>ᛉ</text>`,
+      `<path d="M0 -8 C-10 -6 -20 -14 -26 -26 C-18 -18 -8 -14 0 -13 C8 -14 18 -18 26 -26 C20 -14 10 -6 0 -8Z" fill="url(#${id}gold)"/>`, grip(24), pom(20, `url(#${id}gold)`)); }
+  else if(r===6){ const bladeD = `M-8 -8 L-9 -30 L-5 -38 L-10 -52 L-6 -64 L-11 -80 L-6 ${-8-L+14} L0 ${-8-L} L7 ${-8-L+16} L11 -84 L6 -70 L10 -56 L6 -44 L9 -30 L8 -8Z`;
+    o.push(`<path d="${bladeD}" fill="#2a1a14" opacity=".9"/><path d="${bladeD}" fill="url(#${id}steel)" opacity=".55"/><path d="${bladeD}" fill="none" stroke="#ffb347" stroke-width="1.3" ${G}/>`,
+      `<path class="glowp" d="M0 -12 L-3 -26 L2 -36 L-2 -50 L3 -62 L-1 -76 L2 -90 L0 ${-L+4} M-3 -26 L-7 -32 M2 -36 L6 -42 M-2 -50 L-7 -56 M3 -62 L7 -70 M-1 -76 L-6 -84" fill="none" stroke="#ff8a3c" stroke-width="1.6" stroke-linecap="round" ${G}/>`,
+      `${[[-10,-40],[9,-60],[-9,-80],[8,-96],[-6,-104]].map(([x,y],i)=>`<circle class="rises" style="animation-delay:-${(i*.5).toFixed(1)}s" cx="${x}" cy="${y}" r="1.2" fill="${i%2?'#ffd166':'#ff8a3c'}" ${G}/>`).join('')}`,
+      `<path d="M0 -8 C-10 -6 -20 -14 -26 -26 C-18 -18 -8 -14 0 -13 C8 -14 18 -18 26 -26 C20 -14 10 -6 0 -8Z" fill="url(#${id}gold)"/>`, grip(24), pom(20, '#ff8a3c')); }
+  else if(r===7){ let lE='', rE=''; for(let y=-8;y>-8-L+14;y-=12){ lE+=`Q-11 ${y-6} -7 ${y-12} `; rE=`Q11 ${y-6} 7 ${y} `+rE; }
+    o.push(`<g class="flick">${Array.from({length:7},(_,i)=>{ const y=-16-i*14, s=i%2?-1:1; return `<path d="M${s*8} ${y} Q${s*18} ${y-8} ${s*10} ${y-16} Q${s*13} ${y-8} ${s*7} ${y-6}Z" fill="url(#${id}fire)" opacity=".9"/>`; }).join('')}</g>`,
+      `<path d="M-7 -8 ${lE} L0 ${-8-L} L7 ${-8-L+14} ${rE.replace(/^/,'')} L7 -8Z" fill="url(#${id}blade)" stroke="#ffb347" stroke-width="1" ${G}/><path d="M0 -12 L0 ${-L+8}" stroke="#ff8a3c" stroke-width="1.8" class="glowp" ${G}/>`,
+      `<path d="M0 -8 C-12 -4 -22 -14 -28 -28 C-18 -18 -8 -14 0 -13 C8 -14 18 -18 28 -28 C22 -14 12 -4 0 -8Z" fill="url(#${id}gold)"/>`, grip(26), pom(22, '#ff8a3c')); }
+  else { o.push(`<path d="M-13 -8 L-13 ${-8-L+18} L0 ${-8-L} L13 ${-8-L+18} L13 -8Z" fill="url(#${id}radiant)" filter="url(#${id}gb)"/>`,
+      `<path d="M-13 -8 L-13 ${-8-L+18} L0 ${-8-L} L13 ${-8-L+18} L13 -8Z" fill="none" stroke="#fff" stroke-width="1"/><path d="M0 -14 L0 ${-L+10}" stroke="url(#${id}prism)" stroke-width="3" ${G}/>`,
+      `${['ᚠ','ᚱ','ᛟ','ᛉ','ᚨ','ᛞ'].map((t,i)=>`<text x="-6.5" y="${-24-i*18}" font-size="7" text-anchor="middle" fill="#b48cff" ${G}>${t}</text><text x="6.5" y="${-32-i*18}" font-size="7" text-anchor="middle" fill="#4dffb5" ${G}>${t}</text>`).join('')}`,
+      `<path d="M0 -6 C-16 -2 -30 -16 -36 -34 C-22 -22 -10 -16 0 -14 C10 -16 22 -22 36 -34 C30 -16 16 -2 0 -6Z" fill="url(#${id}radiant)" ${G}/><path d="${diamond(0,-10,8,10)}" fill="url(#${id}prism)" ${G}/>`, grip(28, `url(#${id}gold)`), pom(24, '#fff')); }
+  return {held:`<g transform="translate(146 134) rotate(24)">${o.join('')}</g>`, grip:'S', bent:true, box:[118, -14, 104, 168]};
+}
+
+function shieldMaceW(r, K){
+  const {c, ca, acc, id, G} = K, o=[], sx=82, sy=200;
+  // mace (screen-right hand), angled up and out
+  const m=[];
+  const handle = (top, fill) => `<path d="M-2.4 14 L-2 ${top} L2 ${top} L2.4 14Z" fill="${fill}" stroke="rgba(0,0,0,.5)" stroke-width=".5"/><path d="M-2.6 2 L2.6 2 M-2.6 6 L2.6 6 M-2.6 10 L2.6 10" stroke="#2a1d12" stroke-width="1.2"/>`;
+  const studs = pts => pts.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.5" fill="url(#${id}iron)" stroke="#222" stroke-width=".3"/>`).join('');
+  if(r===0){ m.push(`<path d="M-2.6 14 L-2.4 -18 C-6.5 -28 -8.5 -40 -6.5 -50 C-4 -58 4 -58 6.5 -50 C8.5 -40 6.5 -28 2.4 -18 L2.6 14Z" fill="url(#${id}wood)" stroke="#2c1d12" stroke-width=".8"/>`, studs([[-4,-30],[3.6,-34],[-3,-42],[4,-44],[0,-50],[-5,-38],[1,-24]]), `<path d="M-2.6 2 L2.6 2 M-2.6 7 L2.6 7" stroke="#2a1d12" stroke-width="1.2"/>`); }
+  else if(r===1){ m.push(`<path d="M-2.8 14 L-2.6 -18 C-8 -28 -10 -42 -8 -54 C-5 -62 5 -62 8 -54 C10 -42 8 -28 2.6 -18 L2.8 14Z" fill="url(#${id}wood)" stroke="#2c1d12" stroke-width=".8"/>`, `<path d="M-8.6 -34 L8.6 -34 M-9 -48 L9 -48" stroke="url(#${id}darkiron)" stroke-width="3.6"/>`, studs([[-5,-41],[0,-41],[5,-41],[-4,-27],[4,-27],[0,-56]]), `<path d="M-2.8 2 L2.8 2 M-2.8 7 L2.8 7" stroke="#2a1d12" stroke-width="1.2"/>`); }
+  else if(r===2){ m.push(handle(-30, `url(#${id}darkiron)`), `<ellipse cx="0" cy="-42" rx="5" ry="12" fill="url(#${id}iron)"/><path d="M-4 -52 L-13 -48 L-13 -36 L-4 -32Z M4 -52 L13 -48 L13 -36 L4 -32Z" fill="url(#${id}steel)" stroke="#a9b1be" stroke-width=".7"/><path d="M-3 -56 L0 -60 L3 -56Z" fill="url(#${id}iron)"/>`); }
+  else if(r===3){ m.push(handle(-32, `url(#${id}steel)`), `<circle cx="0" cy="-44" r="10" fill="url(#${id}steel)" stroke="${c}" stroke-width="1"/>`); for(let i=0;i<8;i++) m.push(`<path d="M-2.4 -53 L0 -61 L2.4 -53Z" fill="url(#${id}iron)" transform="rotate(${i*45} 0 -44)"/>`); }
+  else if(r===4){ m.push(handle(-30, `url(#${id}silverM)`), `<ellipse cx="0" cy="-44" rx="5.5" ry="13" fill="url(#${id}silverM)"/><path d="M-4 -54 C-12 -58 -20 -52 -18 -40 C-14 -44 -9 -40 -4 -34Z M4 -54 C12 -58 20 -52 18 -40 C14 -44 9 -40 4 -34Z" fill="url(#${id}gold)" stroke="#8a6420" stroke-width=".6"/><path d="M-12 -48 L-6 -44 M12 -48 L6 -44" stroke="#8a6420" stroke-width=".7"/><path d="M-3 -57 L0 -63 L3 -57Z" fill="url(#${id}gold)"/>`); }
+  else if(r===5){ m.push(handle(-30, `url(#${id}gold)`), `<circle cx="0" cy="-44" r="14" fill="url(#${id}orb)" opacity=".85"/><path d="M-4 -54 C-12 -58 -20 -52 -18 -40 C-14 -44 -9 -40 -4 -34Z M4 -54 C12 -58 20 -52 18 -40 C14 -44 9 -40 4 -34Z" fill="url(#${id}gold)"/><circle cx="0" cy="-44" r="6" fill="#fff" class="glowp" ${G}/>`); }
+  else if(r===6){ m.push(handle(-14, `url(#${id}gold)`), `<path d="M0 -14 Q-2 -32 14 -46" fill="none" stroke="${acc}" stroke-width="2" stroke-dasharray="1 3" stroke-linecap="round" ${G}/>`, `<g class="bob" style="transform-origin:16px -50px;animation-duration:2s"><circle cx="16" cy="-50" r="9.5" fill="url(#${id}steel)" stroke="${acc}" stroke-width="1" ${G}/>${Array.from({length:8},(_,i)=>`<path d="M14 -58 L16 -66 L18 -58Z" fill="${acc}" transform="rotate(${i*45} 16 -50)"/>`).join('')}<circle cx="16" cy="-50" r="3" fill="#fff" ${G}/></g>`); }
+  else if(r===7){ m.push(handle(-30, '#1a1f2c'), `<path d="${diamond(0,-46,14,30)}" fill="url(#${id}crystal)" stroke="#fff" stroke-width=".7" ${G}/><path d="${diamond(-8,-40,8,16)} ${diamond(8,-40,8,16)}" fill="url(#${id}crystal)" stroke="${c}" stroke-width=".6" ${G}/>`); }
+  else { m.push(handle(-30, `url(#${id}radiantV)`), `<circle cx="0" cy="-46" r="17" fill="url(#${id}orb)"/><path d="${star(0,-46,16,6,8)}" fill="url(#${id}radiant)" stroke="#fff" stroke-width=".7" ${G}/><circle cx="0" cy="-46" r="4" fill="#fff" ${G}/>`); }
+  o.push(`<g transform="translate(151 214) rotate(16)">${m.join('')}</g>`);
+  // shield (screen-left forearm)
+  let sh, outline;
+  if(r===0){ outline = `M${sx-28} ${sy} A28 28 0 1 0 ${sx+28} ${sy} A28 28 0 1 0 ${sx-28} ${sy}Z`;
+    sh = `<circle cx="${sx}" cy="${sy}" r="28" fill="url(#${id}woodR)" stroke="#8a6a44" stroke-width="2.6" stroke-dasharray="3 1.5"/>${[-18,-9,0,9,18].map(dx=>`<path d="M${sx+dx} ${sy-Math.sqrt(784-dx*dx)+2} L${sx+dx} ${sy+Math.sqrt(784-dx*dx)-2}" stroke="#3e2a18" stroke-width="1"/>`).join('')}<circle cx="${sx}" cy="${sy}" r="5" fill="#4a3322" stroke="#2c1d12" stroke-width="1"/>`; }
+  else if(r===1){ outline = `M${sx-30} ${sy} A30 30 0 1 0 ${sx+30} ${sy} A30 30 0 1 0 ${sx-30} ${sy}Z`;
+    sh = `<circle cx="${sx}" cy="${sy}" r="30" fill="url(#${id}woodR)" stroke="url(#${id}iron)" stroke-width="4"/>${[-18,-9,0,9,18].map(dx=>`<path d="M${sx+dx} ${sy-Math.sqrt(784-dx*dx)+2} L${sx+dx} ${sy+Math.sqrt(784-dx*dx)-2}" stroke="#3e2a18" stroke-width="1"/>`).join('')}<circle cx="${sx}" cy="${sy}" r="8.5" fill="url(#${id}iron)" stroke="#2a2e35" stroke-width="1"/><circle cx="${sx-2}" cy="${sy-2}" r="2.5" fill="#d6dce6" opacity=".6"/>${Array.from({length:8},(_,i)=>{const a=i*Math.PI/4;return `<circle cx="${f1(sx+Math.cos(a)*25)}" cy="${f1(sy+Math.sin(a)*25)}" r="1.4" fill="#c9d1de"/>`;}).join('')}`; }
+  else if(r===2){ outline = `M${sx-26} ${sy-32} L${sx+26} ${sy-32} L${sx+25} ${sy+4} Q${sx+18} ${sy+30} ${sx} ${sy+42} Q${sx-18} ${sy+30} ${sx-25} ${sy+4}Z`;
+    sh = `<path d="${outline}" fill="url(#${id}wood)" stroke="url(#${id}iron)" stroke-width="3"/><path d="M${sx-26} ${sy-14} L${sx+26} ${sy-14} M${sx-24} ${sy+14} L${sx+24} ${sy+14}" stroke="url(#${id}darkiron)" stroke-width="4"/><circle cx="${sx}" cy="${sy}" r="8" fill="url(#${id}iron)" stroke="#2a2e35"/>`; }
+  else if(r===3){ outline = `M${sx} ${sy-40} Q${sx+26} ${sy-38} ${sx+26} ${sy-20} L${sx+23} ${sy+2} Q${sx+14} ${sy+32} ${sx} ${sy+52} Q${sx-14} ${sy+32} ${sx-23} ${sy+2} L${sx-26} ${sy-20} Q${sx-26} ${sy-38} ${sx} ${sy-40}Z`;
+    sh = `<path d="${outline}" fill="url(#${id}steel)" stroke="${c}" stroke-width="1.6" ${G}/><path d="M${sx} ${sy-36} L${sx} ${sy+46}" stroke="rgba(255,255,255,.25)" stroke-width="1.6"/><path d="M${sx-20} ${sy-18} L${sx+20} ${sy-18}" stroke="rgba(255,255,255,.2)" stroke-width="1.2"/><path d="${diamond(sx,sy-4,10,16)}" fill="${c}" ${G}/>`; }
+  else if(r===4){ outline = `M${sx-26} ${sy-42} L${sx+26} ${sy-42} L${sx+26} ${sy+36} Q${sx} ${sy+48} ${sx-26} ${sy+36}Z`;
+    sh = `${[-30,-6,18].map(dy=>`<path d="M${sx-26} ${sy+dy} L${sx-34} ${sy+dy+5} L${sx-26} ${sy+dy+10}Z M${sx+26} ${sy+dy} L${sx+34} ${sy+dy+5} L${sx+26} ${sy+dy+10}Z" fill="url(#${id}iron)"/>`).join('')}<path d="M${sx-6} ${sy-42} L${sx} ${sy-54} L${sx+6} ${sy-42}Z" fill="url(#${id}iron)"/>
+      <path d="${outline}" fill="url(#${id}steel)" stroke="${c}" stroke-width="1.5"/><path d="M${sx-20} ${sy-36} L${sx+20} ${sy-36} L${sx+20} ${sy+30} Q${sx} ${sy+40} ${sx-20} ${sy+30}Z" fill="none" stroke="url(#${id}gold)" stroke-width="1.6"/><path d="M${sx} ${sy-30} L${sx} ${sy+32} M${sx-14} ${sy-2} L${sx+14} ${sy-2}" stroke="url(#${id}gold)" stroke-width="2"/>${[[-20,-36],[20,-36],[-20,30],[20,30]].map(([x,y])=>`<circle cx="${sx+x}" cy="${sy+y}" r="1.8" fill="url(#${id}gold)"/>`).join('')}`; }
+  else if(r===5){ outline = `M${sx} ${sy-40} Q${sx+26} ${sy-38} ${sx+26} ${sy-20} L${sx+23} ${sy+2} Q${sx+14} ${sy+32} ${sx} ${sy+52} Q${sx-14} ${sy+32} ${sx-23} ${sy+2} L${sx-26} ${sy-20} Q${sx-26} ${sy-38} ${sx} ${sy-40}Z`;
+    const wing = s => `<path d="M${sx+s*24} ${sy-30} C${sx+s*40} ${sy-44} ${sx+s*50} ${sy-36} ${sx+s*52} ${sy-22} C${sx+s*44} ${sy-26} ${sx+s*42} ${sy-18} ${sx+s*46} ${sy-8} C${sx+s*38} ${sy-12} ${sx+s*34} ${sy-4} ${sx+s*36} ${sy+6} C${sx+s*30} ${sy+2} ${sx+s*26} ${sy+4} ${sx+s*23} ${sy+2}Z" fill="url(#${id}gold)" stroke="#8a6420" stroke-width=".6"/>`;
+    sh = `${wing(1)}${wing(-1)}<path d="${outline}" fill="url(#${id}steel)" stroke="${acc}" stroke-width="1.6" ${G}/><circle cx="${sx}" cy="${sy-2}" r="12" fill="url(#${id}orb)" opacity=".7"/><circle cx="${sx}" cy="${sy-2}" r="10" fill="none" stroke="${acc}" stroke-width="1.4" ${G}/><path d="${diamond(sx,sy-2,9,16)}" fill="#fff" class="glowp" ${G}/>`; }
+  else if(r===6){ outline = hexD(sx, sy, 36);
+    const pts = [[0,0],[0,-17],[15,-8.5],[15,8.5],[0,17],[-15,8.5],[-15,-8.5]];
+    sh = pts.map(([x,y],i)=>`<g class="bob" style="animation-delay:-${(i*.3).toFixed(1)}s;animation-duration:2.6s"><path d="${hexD(sx+x*1.12, sy+y*1.12, 8.6)}" fill="url(#${id}steel)" stroke="${acc}" stroke-width="1.1" ${G}/></g>`).join('') + `<path d="${hexD(sx,sy,5)}" fill="${acc}" class="glowp" ${G}/>`; }
+  else if(r===7){ outline = hexD(sx, sy, 34);
+    sh = `<path d="${outline}" fill="url(#${id}crystal)" opacity=".85" stroke="#fff" stroke-width="1.2" ${G}/>${[0,1,2,3,4,5].map(i=>{const a=(i*60-90)*Math.PI/180;return `<path d="M${sx} ${sy} L${f1(sx+Math.cos(a)*34)} ${f1(sy+Math.sin(a)*34)}" stroke="rgba(255,255,255,.55)" stroke-width=".8"/>`;}).join('')}<path d="${hexD(sx,sy,14)}" fill="none" stroke="#fff" stroke-width="1" opacity=".8"/><path d="${diamond(sx,sy,8,12)}" fill="#fff" ${G}/>`; }
+  else { outline = `M${sx-22} ${sy-38} L${sx+22} ${sy-38} L${sx+22} ${sy+18} Q${sx+11} ${sy+38} ${sx} ${sy+44} Q${sx-11} ${sy+38} ${sx-22} ${sy+18}Z`;
+    sh = `<path d="${outline}" fill="url(#${id}radiant)" stroke="${acc}" stroke-width="1.6" ${G}/><circle cx="${sx}" cy="${sy-2}" r="11" fill="none" stroke="${c}" stroke-width="1.5" ${G}/><path d="${diamond(sx,sy-2,9,26)}" fill="${acc}" class="glowp" ${G}/><g class="spinr" style="transform-origin:${sx}px ${sy}px"><circle cx="${sx}" cy="${sy}" r="34" fill="none" stroke="url(#${id}prism)" stroke-width="1.8" stroke-dasharray="6 5" ${G}/></g>`; }
+  const back = `<path d="${outline}" fill="#141a28" stroke="${ca(.7)}" stroke-width="1.2"/><path d="M${sx-12} ${sy-8} L${sx+12} ${sy-8} M${sx-12} ${sy+8} L${sx+12} ${sy+8}" stroke="url(#${id}leather)" stroke-width="3.4"/>`;
+  return {held: o.join('') + sh, heldBack: o.join('') + back, grip:'R', box:[36, 140, 150, 130]};
+}
+
+/* SEN: spirit fox companion, floats beside the player (screen right) and evolves every rank */
+/* AGI: twin warglaives — original curved blades around a centre grip, one per hand */
+function glaive(r, K){
+  const {c, ca, acc, id, G} = K, o=[];
+  const L = [24,27,30,33,35,38,40,43,48][r];
+  const blade = (len, w, fill, stroke, sw=1, extra='') => `<path d="M1 -8 C${f1(len*.3)} ${f1(-len*.95)} ${f1(len*.95)} ${f1(-len*1.05)} ${f1(len*1.1)} ${f1(-len*.45)} C${f1(len*.8)} ${f1(-len*.72+w*.1)} ${f1(len*.4)} ${f1(-len*.55+w*.2)} 4 -2Z" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" ${extra}/>`;
+  const serr = len => Array.from({length:4},(_,i)=>{ const t=.35+i*.13, x=len*t*1.05, y=-len*(.5+t*.45); return `<path d="M${f1(x)} ${f1(y)} l3 -3 l-0.5 4Z" fill="#0b0f18"/>`; }).join('');
+  const gripG = (fill=`url(#${id}leather)`) => `<rect x="-2.8" y="-9" width="5.6" height="18" rx="2" fill="${fill}" stroke="rgba(0,0,0,.5)" stroke-width=".5"/><path d="M-2.8 -5 L2.8 -3 M-2.8 0 L2.8 2 M-2.8 5 L2.8 7" stroke="rgba(255,255,255,.15)" stroke-width=".7"/>`;
+  const up = s => s, down = s => `<g transform="scale(1 -1)">${s}</g>`, downIn = s => `<g transform="scale(-1 -1)">${s}</g>`;
+  if(r===0){ o.push(up(blade(L, 6, `url(#${id}bone)`, '#6b6250', .8)), `<path d="M8 -14 Q14 -20 22 -22" stroke="rgba(0,0,0,.2)" stroke-width=".8" fill="none"/>`, gripG()); }
+  else if(r===1){ const b = blade(L, 6, `url(#${id}darkiron)`, '#1a1d22', .8); o.push(up(b), down(b), gripG()); }
+  else if(r===2){ const b = blade(L, 7, `url(#${id}blade)`, ca(.6), .8); o.push(up(b), downIn(b), gripG(`url(#${id}darkiron)`)); }
+  else if(r===3){ const b = blade(L, 7, `url(#${id}blade)`, c, .9) + serr(L) + `<path d="M${f1(L*1.1)} ${f1(-L*.45)} l5 4 l-6 1Z" fill="url(#${id}iron)"/>`; o.push(up(b), down(b), gripG(`url(#${id}steel)`)); }
+  else if(r===4){ const b = blade(L, 8, `url(#${id}silverM)`, c, 1) + `<path d="M8 -12 C${f1(L*.4)} ${f1(-L*.6)} ${f1(L*.8)} ${f1(-L*.75)} ${f1(L)} ${f1(-L*.55)}" stroke="url(#${id}gold)" stroke-width="1" fill="none"/>`;
+    o.push(up(b), down(b), `<path d="M-1 -8 C-10 -14 -14 -4 -12 6 C-9 -2 -6 -4 -2 -3Z" fill="url(#${id}silverM)" stroke="${c}" stroke-width=".7"/>`, gripG(`url(#${id}silverM)`)); }
+  else if(r===5){ const b = blade(L, 8, `url(#${id}silverM)`, '#4dffb5', 1.6, G); o.push(up(b), down(b), `<path d="M-1 -8 C-10 -14 -14 -4 -12 6 C-9 -2 -6 -4 -2 -3Z" fill="url(#${id}silverM)" stroke="#4dffb5" stroke-width="1" ${G}/>`, gripG(`url(#${id}steel)`)); }
+  else if(r===6){ const b = blade(L, 8, `url(#${id}steel)`, '#4dffb5', 1.5, G) + blade(L*.66, 5, `url(#${id}silverM)`, '#b48cff', 1, G) + `<text x="${f1(L*.55)}" y="${f1(-L*.62)}" font-size="5" fill="#b48cff" class="glowp" ${G}>ᚱ</text>`;
+    o.push(`<path d="M${f1(L*1.1)} ${f1(-L*.45)} A${f1(L*1.15)} ${f1(L*1.15)} 0 0 1 ${f1(L*1.1)} ${f1(L*.45)}" fill="none" stroke="#4dffb5" stroke-width="2" opacity=".35"/>`, up(b), down(b), gripG(`url(#${id}steel)`)); }
+  else if(r===7){ const e = blade(L*1.22, 10, `url(#${id}glaiveG)`, 'none', 0, `opacity=".7" class="glowp" filter="url(#${id}gb)"`), b = blade(L, 8, '#1a1f2c', '#4dffb5', 1.2);
+    o.push(up(e), down(e), up(b), down(b), gripG('#1a1f2c'), `<circle class="rises" cx="${f1(L*.9)}" cy="${f1(-L*.9)}" r="1.3" fill="#b48cff" ${G}/><circle class="rises" style="animation-delay:-1s" cx="${f1(L*.7)}" cy="${f1(L*.7)}" r="1.1" fill="#4dffb5" ${G}/>`); }
+  else { const e = blade(L*1.25, 12, `url(#${id}glaiveG)`, '#fff', .8, `filter="url(#${id}gb)"`), core = blade(L*.8, 6, '#ffffff', 'none', 0, `opacity=".85" ${G}`);
+    o.push(`<g opacity=".25" transform="rotate(-18)">${up(blade(L*1.25,12,`url(#${id}glaiveG)`,'none',0))}${down(blade(L*1.25,12,`url(#${id}glaiveG)`,'none',0))}</g>`, up(e), down(e), up(core), down(core), gripG(`url(#${id}radiantV)`),
+      `<g class="spin" style="transform-origin:0px 0px;animation-duration:3s"><circle cx="${f1(L*1.4)}" cy="0" r="1.6" fill="#4dffb5" ${G}/><circle cx="${f1(-L*.5)}" cy="${f1(-L*1.2)}" r="1.4" fill="#b48cff" ${G}/><circle cx="${f1(-L*.5)}" cy="${f1(L*1.2)}" r="1.2" fill="#fff" ${G}/></g>`); }
+  return o.join('');
+}
+function glaiveW(r, K){
+  const g = glaive(r, K);
+  return {held: `<g transform="translate(151 210) rotate(8)">${g}</g><g transform="translate(89 210) scale(-1 1) rotate(8)">${g}</g>`, grip:'R2', box:[132, 150, 84, 120]};
+}
+
+/* SEN: spirit fox — gains a new feature every rank; at SS it becomes a large guardian behind your shoulder */
+function foxW(r, K){
+  const {c, ca, acc, id, G} = K;
+  if(r===0) return {held:`<g class="bob" style="animation-duration:2.6s"><circle cx="192" cy="250" r="12" fill="url(#${id}orb)" opacity=".8"/><path d="M192 238 Q198 246 192 258 Q186 246 192 238Z" fill="#fff" ${G}/><circle cx="198" cy="266" r="1.4" fill="${acc}" ${G}/><circle cx="186" cy="272" r="1" fill="${acc}" ${G}/></g>`, box:[160, 226, 64, 56]};
+  const tails = [0,1,1,1,2,3,5,7,9][r];
+  const tailD = 'M0 0 C8 -2 20 -12 23 -28 C25 -38 21 -46 16 -42 C15 -30 9 -16 -1 -7Z';
+  const tipD = 'M23 -28 C25 -38 21 -46 16 -42 C17 -38 19 -33 23 -28Z';
+  const flame = (x,y,s=1) => `<path class="flick" d="M${x} ${y} q${3*s} ${-6*s} 0 ${-12*s} q${-1*s} ${5*s} ${-4*s} ${6*s} q${2*s} ${3*s} ${4*s} ${6*s}Z" fill="${acc}" opacity=".9" ${G}/>`;
+  const tailFill = `url(#${id}spirit)`;
+  const spread = tails===1 ? [10] : Array.from({length:tails}, (_,i)=>-30 + i*(90/(tails-1)));
+  const tailSet = (sp, len=1) => sp.map((a,i)=>`<g transform="translate(17 -6) rotate(${f1(a)}) scale(${len})"><g class="sway" style="transform-origin:0px 0px;animation-duration:${f1(2.8+i*.3)}s;animation-delay:-${f1(i*.4)}s"><path d="${tailD}" fill="${tailFill}" stroke="${c}" stroke-width="1" ${G}/><path d="${tipD}" fill="#fff" opacity=".9"/>${r>=3?flame(21,-40,.9):''}</g></g>`).join('');
+  const kit = r===1;
+  const bodyP = `<path d="M-10 0 C-14 -10 -12 -24 -4 -30 C4 -34 16 -30 20 -18 C23 -8 22 0 16 0Z" fill="${tailFill}" stroke="${c}" stroke-width="1.1" ${G}/>`;
+  const headP = `<path d="M-6 -28 C-10 -31 -15 -33 -25 -35 L-21 -39 C-17 -43 -13 -45 -9 -45 L-12 -56 L-3 -48 C-1 -48 2 -48 4 -47 L6 -57 L10 -45 C12 -40 10 -32 4 -28Z" fill="${tailFill}" stroke="${c}" stroke-width="1.1" ${G}/>
+    <path d="M-25 -35 L-23 -37" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+    <ellipse cx="-11" cy="-40" rx="${kit?3:2.4}" ry="${kit?2.2:1.5}" fill="#fff" ${G}/><circle cx="-11" cy="-40" r="${kit?5:3.6}" fill="${acc}" opacity=".35"/>`;
+  const body = bodyP + (kit ? `<g transform="translate(-2 -30) scale(1.32) translate(2 30)">${headP}</g>` : headP) + `<path d="M-8 0 L-8 -6 M2 0 L2 -5" stroke="${ca(.7)}" stroke-width="1.4" stroke-linecap="round"/>`;
+  const extras = [];
+  if(r>=2) extras.push(flame(-8, 1, 1.1), flame(2, 1, 1.1), `<path d="M-2 -20 L1 -25 L4 -20 L1 -16Z" fill="${acc}" class="glowp" ${G}/>`);   // C: spirit-flame paws + chest mark
+  if(r===2) extras.push([[26,2],[40,1],[54,2]].map(([x,y],i)=>`<g opacity="${f1(.8-i*.22)}"><ellipse cx="${x}" cy="${y}" rx="3" ry="1.4" fill="${acc}" ${G}/><circle cx="${x-3}" cy="${y-2.4}" r=".9" fill="${acc}"/><circle cx="${x}" cy="${y-3}" r=".9" fill="${acc}"/><circle cx="${x+3}" cy="${y-2.4}" r=".9" fill="${acc}"/></g>`).join(''));   // C: glowing paw-print trail
+  if(r>=3) extras.push(flame(-11, -55, .6), flame(6, -56, .6));                               // B: fiery ear tufts
+  if(r>=4) extras.push(`<g transform="translate(-4 -30) scale(1 .35)"><g class="spin" style="transform-origin:0px 0px;animation-duration:6s"><circle r="13" fill="none" stroke="${acc}" stroke-width="1.6" stroke-dasharray="3 3" ${G}/><text x="13" y="2" font-size="9" fill="${acc}">ᚱ</text><text x="-15" y="2" font-size="9" fill="${acc}">ᛟ</text></g></g>`); // A: rune collar
+  if(r>=5) extras.push(`<path d="M-4 -47 L-1 -53 L2 -47 L-1 -44Z" fill="#fff" ${G}/><path d="M0 -22 Q6 -26 12 -20 M2 -14 Q8 -18 14 -12" fill="none" stroke="${acc}" stroke-width="1.1" class="glowp" ${G}/>`); // S: crest + markings
+  if(r>=6) extras.push([[24,-10],[30,-26],[36,-6],[18,-34]].map(([x,y],i)=>`<path class="rise" style="animation-delay:-${i}s;animation-duration:3.6s" d="M${x} ${y} q2 -3 0 -6 q-2 3 0 6Z" fill="${acc}" opacity=".8" ${G}/>`).join('')); // S+: petal trail
+  if(r>=8) extras.push(`<path d="M-6 -50 C-10 -60 -16 -64 -22 -64 M-12 -58 L-18 -56 M4 -50 C6 -60 12 -66 18 -66 M10 -60 L16 -58" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" ${G}/>`, [[-2,-18],[8,-22],[12,-10],[-6,-36],[4,-40]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r=".9" fill="#fff" ${G}/>`).join('')); // SSS: antlers of light + stars
+  const fox = (sp, len) => `${tailSet(sp, len)}${body}${extras.join('')}`;
+  if(r<=7){ const s = [0,.5,.72,.8,.86,.92,1.0,1.18][r];
+    return {held:`<g transform="translate(${r>=7?184:188} 312) scale(${s})"><g class="bob" style="animation-duration:3.2s"><ellipse cx="4" cy="2" rx="18" ry="3" fill="${acc}" opacity=".18"/>${fox(spread, r===1?.7:1)}</g></g>`, box:[r>=6?150:156, r>=6?240:256, r>=6?92:84, r>=6?78:62]}; }
+  // SSS: nine tails fanned behind the player, fox floating at the shoulder
+  const s = 1.65;
+  let behind = `<g transform="translate(182 168) scale(${s})"><g class="bob" style="animation-duration:4s">${fox(spread, 1.15)}</g></g>`;
+  if(r>=8){ // the nine tails become the wings of light: 4 per side + 1 rising behind the head
+    const tailW = (ang, len, i) => `<g transform="translate(126 128) rotate(${f1(ang+52)}) scale(${f1(len)})"><g class="sway" style="transform-origin:0px 0px;animation-duration:${f1(5.5+i*.2)}s;animation-delay:-${f1(i*.3)}s"><path d="M0 0 C6 -2 14 -12 16 -28 C18 -40 14 -48 9 -44 C9 -30 5 -16 -1 -7Z" fill="url(#${id}wing)" stroke="#fff" stroke-width=".35" ${G}/><path d="M0 0 C6 -2 14 -12 16 -28 C18 -40 14 -48 9 -44 C9 -30 5 -16 -1 -7Z" fill="url(#${id}starfill)" opacity=".35"/><path d="M16 -28 C18 -40 14 -48 9 -44 C11 -38 13 -33 16 -28Z" fill="#fff" opacity=".95"/>${[[6,-12],[10,-22],[12,-34]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r=".55" fill="#fff" ${G}/>`).join('')}</g></g>`;
+    const side = [[-6,2.5],[-26,2.4],[-46,2.2],[-66,1.95]].map(([a2,l],i)=>tailW(a2,l,i)).join('');
+    behind = `<g>${side}</g><g transform="translate(240 0) scale(-1 1)">${side}</g>` +
+      `<g transform="translate(120 120) rotate(-38) scale(1.9)"><g class="sway" style="transform-origin:0px 0px;animation-duration:6s"><path d="M0 0 C6 -2 14 -12 16 -28 C18 -40 14 -48 9 -44 C9 -30 5 -16 -1 -7Z" fill="url(#${id}wing)" stroke="#fff" stroke-width=".4" ${G}/><path d="M16 -28 C18 -40 14 -48 9 -44 C11 -38 13 -33 16 -28Z" fill="#fff"/></g></g>` +
+      `<g transform="translate(184 166) scale(${s})"><g class="bob" style="animation-duration:4s">${body}${extras.join('')}</g></g>`; }
+  return {held:'', behind, box: r>=8 ? [8, 18, 232, 160] : [132, 62, 128, 112]};
+}
+const WEAPON_FN = {INT:staffW, AGI:glaiveW, STR:swordW, VIT:shieldMaceW, SEN:foxW};
+/* ===== SECOND-STAT EFFECTS (behind the player, filling the panel) — grow every rank ===== */
+function secondFX(stat, r, K){
+  const {id, G} = K, o=[], n = 3 + r*2;
+  const rnd = i => ((Math.sin(i*12.9898)*43758.5453)%1+1)%1;
+  if(stat==='STR'){ const ember='#ff8a3c';
+    const rock = (x,y,s,crack) => `<path d="M${f1(x-4*s)} ${f1(y+1*s)} L${f1(x-2*s)} ${f1(y-3.5*s)} L${f1(x+3*s)} ${f1(y-3*s)} L${f1(x+4.5*s)} ${f1(y+1.5*s)} L${f1(x+1*s)} ${f1(y+4*s)}Z" fill="#3b4150" stroke="#6b7384" stroke-width=".6"/>${crack?`<path d="M${f1(x-2*s)} ${f1(y-1*s)} L${f1(x)} ${f1(y+1*s)} L${f1(x+2.5*s)} ${f1(y-1.5*s)}" stroke="${ember}" stroke-width="${f1(.5+s*.25)}" fill="none" class="glowp" ${G}/>`:''}`;
+    for(let i=0;i<2+r;i++){ const x=70+rnd(i)*100; o.push(`<circle class="rises" style="animation-delay:-${f1(rnd(i+2)*2.6)}s" cx="${f1(x)}" cy="${f1(314+rnd(i+4)*6)}" r="${f1(.8+rnd(i+6)*.8)}" fill="#9aa1ad" opacity=".55"/>`); }
+    if(r>=1) for(let i=0;i<Math.min(2+r,8);i++){ const x=60+rnd(i+20)*120; o.push(`<g class="rise" style="animation-delay:-${f1(rnd(i+21)*6)}s;animation-duration:${f1(6+rnd(i+22)*3)}s">${rock(x, 312-rnd(i+23)*8, .5+rnd(i+24)*.4, false)}</g>`); }
+    if(r>=3) [[46,230],[194,214],[36,150],[204,140]].slice(0, Math.min(r-2,4)).forEach(([x,y],i)=>o.push(`<g class="bob" style="animation-delay:-${i*.7}s;animation-duration:${3.4+i*.4}s">${rock(x, y, 1.3+(r-3)*.12, true)}</g>`));
+    if(r>=6) o.push(`<g transform="translate(120 250) scale(1 .3)"><g class="spin" style="transform-origin:0px 0px;animation-duration:${30-r*2}s">${[0,120,240].slice(0, r>=7?3:2).map(a=>rock(Math.cos(a*Math.PI/180)*96, Math.sin(a*Math.PI/180)*96, 2.6, true)).join('')}</g></g>`);
+    for(let i=0;i<r;i++){ const x=70+rnd(i+40)*100; o.push(`<circle class="rise" style="animation-delay:-${f1(rnd(i+41)*4)}s" cx="${f1(x)}" cy="${f1(300+rnd(i+42)*14)}" r="1" fill="${i%2?ember:'#ffd166'}" ${G}/>`); }
+  }
+  if(stat==='AGI'){ const col='#d8f3ff', n = Math.min(2 + r, 9);
+    for(let i=0;i<n;i++){ const x=30+rnd(i)*170, y=40+rnd(i+3)*260, len=14+rnd(i+5)*12+r;
+      o.push(`<g class="drift" style="animation-delay:-${f1(rnd(i+7)*4)}s;animation-duration:${f1(3.6+rnd(i+8)*2)}s"><path d="M${f1(x)} ${f1(y)} q${f1(len*.5)} ${f1(-4-r*.3)} ${f1(len)} 0" fill="none" stroke="${col}" stroke-width="${f1(.8+r*.07)}" stroke-linecap="round" opacity="${f1(.3+r*.04)}"/></g>`); }
+    if(r>=6) o.push(`<g class="spin" style="transform-origin:120px 190px;animation-duration:12s" opacity=".35"><path d="M60 170 A62 110 0 0 1 120 80" fill="none" stroke="${col}" stroke-width="1" stroke-linecap="round"/><path d="M180 210 A62 110 0 0 1 120 300" fill="none" stroke="${col}" stroke-width="1" stroke-linecap="round"/></g>`);
+    if(r>=8) o.push(`<g transform="translate(120 312) scale(1 .28)"><g class="spinf" style="transform-origin:0px 0px;animation-duration:3s" opacity=".5"><path d="M0 0 m-40 0 a40 40 0 0 1 80 0 a30 30 0 0 1 -60 0 a20 20 0 0 1 40 0" fill="none" stroke="${col}" stroke-width="2"/></g></g>`);
+  }
+  if(stat==='VIT'){ const col='#4dffb5';
+    const plus = (x,y,s) => `<path d="M${f1(x-2.2*s)} ${f1(y)} L${f1(x+2.2*s)} ${f1(y)} M${f1(x)} ${f1(y-2.2*s)} L${f1(x)} ${f1(y+2.2*s)}" stroke="${col}" stroke-width="${f1(1.1*s)}" stroke-linecap="round" ${G}/>`;
+    if(r>=1) o.push(`<ellipse cx="120" cy="316" rx="${40+r*3}" ry="8" fill="${col}" opacity="${f1(.06+r*.012)}" ${G}/>`);
+    for(let i=0;i<3+r;i++){ const x=60+rnd(i)*120, y=290+rnd(i+4)*24; o.push(`<g class="rise" style="animation-delay:-${f1(rnd(i+2)*4)}s;animation-duration:${f1(3.6+rnd(i+3)*1.6)}s" opacity=".85">${plus(x,y,.8+rnd(i+5)*.5)}</g>`); }
+    if(r>=3) [[84,318],[156,318],[100,322],[140,322],[68,320],[172,320]].slice(0, Math.min(2+(r-3),6)).forEach(([x,y],i)=>o.push(`<g class="sway" style="transform-origin:${x}px ${y}px;animation-duration:${3+i*.3}s"><path d="M${x} ${y} L${x} ${y-7}" stroke="${col}" stroke-width=".9"/><path d="M${x} ${y-5} q-4 -2 -5 -6 q4 1 5 6Z M${x} ${y-6} q4 -2 5 -6 q-4 1 -5 6Z" fill="${col}" opacity=".8" ${G}/></g>`));
+    if(r>=5) o.push(`<g class="spin" style="transform-origin:120px 200px;animation-duration:${14-r}s">${Array.from({length:6+(r-5)*2},(_,i)=>{ const a=i/(6+(r-5)*2)*Math.PI*2; return `<circle cx="${f1(120+Math.cos(a)*64)}" cy="${f1(200+Math.sin(a)*120)}" r="1.4" fill="${col}" opacity=".7" ${G}/>`; }).join('')}</g>`);
+    if(r>=7) for(let i=0;i<r-5;i++){ const x=40+rnd(i+30)*160, y=60+rnd(i+31)*180; o.push(`<g class="bob" style="animation-delay:-${i*.8}s;animation-duration:${3+i*.5}s"><path d="M${f1(x)} ${f1(y)} q5 -6 10 0 q-5 6 -10 0Z" fill="${col}" opacity=".55" transform="rotate(${30+i*40} ${f1(x+5)} ${f1(y)})" ${G}/></g>`); }
+  }
+  if(stat==='INT'){ const col='#9fb8ff', cn = 1 + Math.floor(r/2);
+    const spots = [[34,120],[206,120],[30,230],[210,230],[60,40],[180,40]];
+    for(let i=0;i<Math.min(cn,6);i++){ const [x,y]=spots[i], R=9+r*.9;
+      o.push(`<g transform="translate(${x} ${y})"><g class="${i%2?'spinr':'spin'}" style="transform-origin:0px 0px;animation-duration:${10+i*2}s" opacity=".75" ${G}><circle r="${f1(R)}" fill="none" stroke="${col}" stroke-width="1"/><circle r="${f1(R*.7)}" fill="none" stroke="${col}" stroke-width=".7" stroke-dasharray="2 3"/>${['ᚠ','ᚱ','ᛟ','ᛉ'].map((t,j)=>{const a=j*Math.PI/2;return `<text x="${f1(Math.cos(a)*R*.85)}" y="${f1(Math.sin(a)*R*.85+2.5)}" font-size="${f1(5+r*.3)}" text-anchor="middle" fill="${col}">${t}</text>`;}).join('')}</g></g>`); }
+    if(r>=5) o.push(`<g class="bob" style="animation-duration:4s" fill="${col}" font-size="8" opacity=".6" ${G}>${['ᚨ','ᛞ','ᛗ','ᛚ','ᛜ','ᛇ'].slice(0,r-3).map((t,i)=>`<text x="${30+i*36}" y="${300-(i%2)*14}">${t}</text>`).join('')}</g>`);
+  }
+  if(stat==='SEN'){ const col='#fff4d6';
+    for(let i=0;i<n+2;i++){ const x=24+rnd(i)*192, y=40+rnd(i+11)*270, big = r>=5 && i%4===0;
+      o.push(`<g class="bob" style="animation-delay:-${f1(rnd(i+1)*3)}s;animation-duration:${f1(2.5+rnd(i+6)*2)}s"><circle cx="${f1(x)}" cy="${f1(y)}" r="${big?3.4:f1(1+rnd(i+5))}" fill="${col}" opacity="${f1(.4+rnd(i+8)*.5)}" ${G}/>${big?`<circle cx="${f1(x)}" cy="${f1(y)}" r="8" fill="${col}" opacity=".12"/>`:''}</g>`); }
+  }
+  return o.join('');
+}
+
+/* ===== GROUND CIRCLE — changes every rank ===== */
+function ground(r, K){
+  const {c, ca, acc, id, G} = K, o=[];
+  if(r>=8) o.push(`<ellipse cx="120" cy="318" rx="74" ry="15" fill="none" stroke="url(#${id}prism)" stroke-width="2" opacity=".8" ${G}/>`);
+  if(r>=5) o.push(`<ellipse cx="120" cy="318" rx="60" ry="13" fill="url(#${id}aura)" opacity=".7"/>`);
+  if(r>=1){ const runes = r>=3 ? 'ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃ'.split('').map((t,i)=>{const a=i/12*Math.PI*2;return `<text x="${f1(Math.cos(a)*46)}" y="${f1(Math.sin(a)*46+3.5)}" font-size="9" text-anchor="middle" fill="${c}">${t}</text>`;}).join('') : '';
+    o.push(`<g transform="translate(120 318) scale(1 .26)"><g class="spin" style="transform-origin:0px 0px;animation-duration:20s"><circle r="${r>=2?54:44}" fill="none" stroke="${c}" stroke-width="1.4" opacity=".7"/>${r>=2?`<circle r="38" fill="none" stroke="${c}" stroke-width="1" stroke-dasharray="4 6" opacity=".55"/>`:''}${runes}</g>${r>=4?`<g class="spinr" style="transform-origin:0px 0px;animation-duration:30s"><circle r="64" fill="none" stroke="${acc}" stroke-width="1.2" stroke-dasharray="10 6" opacity=".6"/></g>`:''}${r>=6?`<circle r="72" fill="none" stroke="${acc}" stroke-width=".8" opacity=".5"/>`:''}</g>`); }
+  if(r>=7) [70,100,140,170].forEach((x,i)=>o.push(`<rect x="${x-1.5}" y="${280}" width="3" height="36" fill="url(#${id}trail)" class="glowp" style="animation-delay:-${i*.5}s" transform="rotate(180 ${x} 298)"/>`));
+  o.push(`<ellipse cx="120" cy="318" rx="34" ry="5.5" fill="#000" opacity=".6"/>`);
+  const pn = 2 + r*2;
+  for(let i=0;i<pn;i++){ const x=78+(i*37%86), y=250+(i*53%60); o.push(`<circle class="rise" style="animation-delay:-${f1(i*.43%4)}s;animation-duration:${f1(3.2+(i%4)*.7)}s" cx="${x}" cy="${y}" r="${f1(.9+(i%3)*.5)}" fill="${i%4===0?acc:c}" ${G}/>`); }
+  return o.join('');
+}
+
+/* ===== HEAD: bare head, swept-back hair, shadowed face, headpiece per rank ===== */
+function head(r, K, back, top){
+  const {c, ca, acc, id, G} = K, o=[];
+  const M = d => back ? mapD(d, x=>240-x) : d;
+  const faceD = 'M120 36 C109 36 103 45 103 57 C103 67 107 75 113 80 L120 84 L127 80 C133 75 137 67 137 57 C137 45 131 36 120 36Z';
+  const hairF0 = 'M100 66 C95 52 97 38 104 30 L101 21 L110 26 C115 20 123 17 131 19 L135 11 L138 21 C147 25 153 34 152 45 L163 41 L155 51 L165 55 L153 60 L151 66 C149 58 146 53 141 50 L134 46 L136 54 L128 45 L124 51 L120 44 C114 46 108 51 106 58 L104 66Z';
+  const hairB0 = 'M98 64 C94 48 98 34 105 28 L102 19 L111 24 C116 18 124 16 132 18 L136 10 L139 20 C148 24 154 33 153 44 L164 40 L156 50 L166 55 L154 60 C153 70 148 80 138 86 L102 86 C99 80 98 72 98 64Z';
+  const hairF = 'M101 59 C99 44 106 32 120 31 C134 31 141 43 139 59 C138 53 135 49 131 47 C126 46 121 47 115 50 C117 47 118 45 119 44 C113 45 107 49 104 54Z';
+  const hairB = 'M101 60 C99 44 106 31 120 30 C134 30 141 43 139 60 C138 70 134 78 128 82 L112 82 C106 78 102 70 101 60Z';
+  const hair = HAIR_STYLE;
+  o.push(`<path d="M113 78 L127 78 L128 92 L112 92Z" fill="#1b2232" stroke="${ca(.4)}" stroke-width=".8"/>`);
+  if(!back){
+    o.push(`<path d="M103 54 Q99 56 100 62 Q101 67 105 66Z M137 54 Q141 56 140 62 Q139 67 135 66Z" fill="#2a3346" stroke="${ca(.45)}" stroke-width=".8"/>`);
+    o.push(`<path d="${faceD}" fill="url(#${id}skin)" stroke="${ca(.7)}" stroke-width="1.1"/>`);
+    o.push(`<path d="M106 52 Q120 58 134 52 L134 62 Q120 66 106 62Z" fill="#05070d" opacity=".55"/>`);
+    o.push(`<path d="M120 61 L117.5 70 L121.5 71" fill="none" stroke="rgba(0,0,0,.45)" stroke-width="1.1" stroke-linejoin="round"/><path d="M115.5 75.5 Q120 77 124.5 75.5" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="1"/><path d="M107 66 Q110 76 120 83" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="1.4"/>`);
+    o.push(`<g class="flick" ${G}><path d="M109.5 59.5 Q113.5 56.8 117.5 59.5 Q113.5 61.8 109.5 59.5Z" fill="${acc}"/><path d="M122.5 59.5 Q126.5 56.8 130.5 59.5 Q126.5 61.8 122.5 59.5Z" fill="${acc}"/></g><path d="M109 55 L117 56 M123 56 L131 55" stroke="#05070d" stroke-width="1.6" stroke-linecap="round"/>`);
+    if(hair==='short') o.push(`<path d="${hairF}" fill="url(#${id}hair)" stroke="${ca(.85)}" stroke-width="1" stroke-linejoin="round"/><path d="M108 38 C114 34 124 33 133 36 M110 44 C116 40 124 39 132 41" stroke="rgba(255,255,255,.12)" stroke-width="1" fill="none"/>`);
+    if(top==='SEN') o.push(`<path d="M120 47.5 L122.5 51 L120 54.5 L117.5 51Z" fill="#fff" ${G}/>`);
+  } else {
+    o.push(`<path d="${M('M103 54 Q99 56 100 62 Q101 67 105 66Z M137 54 Q141 56 140 62 Q139 67 135 66Z')}" fill="#2a3346" stroke="${ca(.45)}" stroke-width=".8"/>`);
+    o.push(hair==='short' ? `<path d="${hairB}" fill="url(#${id}hair)" stroke="${ca(.85)}" stroke-width="1.1" ${G}/><path d="M112 36 C114 50 114 66 113 80 M120 32 C121 50 121 66 120 82 M128 36 C127 50 127 66 127 80" stroke="rgba(255,255,255,.08)" stroke-width="1.2" fill="none"/>`
+      : `<path d="${hairB}" fill="url(#${id}skin)" stroke="${ca(.7)}" stroke-width="1.1"/>`);
+  }
+  // headpiece (worn across the hairline)
+  const band = (fill, stroke, w=4) => `<path d="${M('M102 52 C106 42 134 40 140 50')}" fill="none" stroke="${fill}" stroke-width="${w}" stroke-linecap="round"/><path d="${M('M102 52 C106 42 134 40 140 50')}" fill="none" stroke="${stroke}" stroke-width=".7" opacity=".7"/>`;
+  if(r===1){ o.push(band('#3a4458', ca(.8)), `<g class="sway" style="transform-origin:${back?100:140}px 50px;animation-duration:2.6s"><path d="${M('M140 50 C148 54 152 62 150 72 M140 50 C146 56 146 66 142 74')}" fill="none" stroke="#3a4458" stroke-width="2.6" stroke-linecap="round"/></g>`); }
+  if(r===2){ o.push(band(`url(#${id}leather)`, ca(.8), 4.6)); if(!back) o.push(`<path d="M114 40 L126 40 L125 47 L115 47Z" fill="url(#${id}iron)" stroke="#2a2e35" stroke-width=".6"/>`); }
+  if(r===3){ o.push(band('#2a3350', c, 4.4)); if(!back) o.push(`<path d="${diamond(120,43,6,8)}" fill="${c}" class="glowp" ${G}/>`); }
+  if(r===4){ o.push(`<path d="${M('M101 50 C106 38 134 36 141 48')}" fill="none" stroke="url(#${id}silverM)" stroke-width="2.4" ${G}/>`); if(!back) o.push(`<path d="M120 33 L123 40 L120 44 L117 40Z" fill="url(#${id}silverM)" stroke="${c}" stroke-width=".7"/><circle cx="120" cy="39" r="1.6" fill="${c}" ${G}/>`); }
+  if(r>=5){ const crownCol = r>=8 ? '#fff' : acc;
+    o.push(`<g ${G}><path d="M103 40 L106 24 L113 33 L120 16 L127 33 L134 24 L137 40 C128 36 112 36 103 40Z" fill="${r>=8?`url(#${id}radiant)`:`url(#${id}gold)`}" stroke="${crownCol}" stroke-width="1.2" stroke-linejoin="round"/><circle cx="120" cy="16" r="2.2" fill="#fff"/><circle cx="106" cy="24" r="1.4" fill="#fff"/><circle cx="134" cy="24" r="1.4" fill="#fff"/></g>`);
+    if(r===6) o.push(`<g class="spin" style="transform-origin:120px 20px;animation-duration:9s">${[0,120,240].map(a=>{const x=120+Math.cos(a*Math.PI/180)*24, y=20+Math.sin(a*Math.PI/180)*8; return `<path d="${diamond(x,y,4,8)}" fill="${acc}" ${G}/>`;}).join('')}</g>`);
+    if(r>=7) o.push(`<g transform="translate(120 12) scale(1 .3)"><g class="spinr" style="transform-origin:0px 0px"><circle r="${r>=8?32:26}" fill="none" stroke="${r>=8?`url(#${id}prism)`:acc}" stroke-width="2.6" stroke-dasharray="${r>=8?'9 5':'2 0'}" ${G}/></g></g>`);
+    if(r>=8) o.push(`<circle cx="120" cy="14" r="10" fill="url(#${id}orb)" opacity=".7"/>`);
+  }
+  return `<g transform="rotate(${back?4:-4} 120 84)">${o.join('')}</g>`;
+}
+/* ===== THE PLAYER ===== */
+let HAIR_STYLE = 'short';
+function figure(mode, r, top, second, id){
+  const R = RK[r], rgb = R.rgb, c=`rgb(${rgb})`, ca=a=>`rgba(${rgb},${a})`, acc = R.acc || c, G=`filter="url(#${id}g)"`;
+  const back = mode==='back', K = {c, ca, acc, id, G};
+  const M = d => back ? mapD(d, x=>240-x) : d;
+  const MS = s => back ? `<g transform="translate(240 0) scale(-1 1)">${s}</g>` : s;
+  const P = (d,a='') => `<path d="${M(d)}" ${a}/>`;
+  const W = WEAPON_FN[top](r, K), out = [];
+  out.push(`<ellipse class="pulse" style="transform-origin:120px 175px" cx="120" cy="175" rx="${80+r*4}" ry="${145+r*3}" fill="url(#${id}aura)" opacity="${f1(.35+r*.05)}"/>`);
+  if(second) out.push(secondFX(second, r, K));
+  // S+: light rays behind
+  if(r>=5){ const n = 10 + (r-5)*4; out.push(`<g class="spin" style="transform-origin:120px 150px;animation-duration:60s" opacity="${f1(.35+(r-5)*.1)}">${Array.from({length:n},(_,i)=>`<path d="M118 150 L${f1(120+Math.cos(i/n*Math.PI*2)*170)} ${f1(150+Math.sin(i/n*Math.PI*2)*170)} L122 150Z" fill="url(#${id}ray)" transform="rotate(${f1(i*.7)} 120 150)"/>`).join('')}</g>`); }
+  out.push(ground(r, K));
+  // SSS: wings of light
+  if(r>=8 && top!=='SEN'){ const fe=[]; for(let i=0;i<7;i++){ const a=-22-i*13, len=118-i*8, x0=126, y0=128, x2=x0+Math.cos(a*Math.PI/180)*len, y2=y0+Math.sin(a*Math.PI/180)*len;
+      fe.push(`M${x0} ${y0} Q${f1((x0+x2)/2+8)} ${f1((y0+y2)/2-12)} ${f1(x2)} ${f1(y2)} Q${f1((x0+x2)/2+2)} ${f1((y0+y2)/2+2)} ${x0} ${y0+7}Z`); }
+    out.push(`<g class="sway" style="transform-origin:120px 130px;animation-duration:6s" ${G}>${fe.map((d,i)=>`<path d="${d}" fill="url(#${id}wing)" opacity="${f1(.85-i*.08)}"/><path d="${mapD(d,x=>240-x)}" fill="url(#${id}wing)" opacity="${f1(.85-i*.08)}"/>`).join('')}</g>`); }
+  // SS+ fox guardian behind the player
+  if(W.behind) out.push(back ? MS(W.behind) : W.behind);
+  // AGI cloak tails
+  if(top==='AGI') out.push(`<g class="sway" style="transform-origin:120px 166px;animation-duration:3.4s">${P('M104 166 C96 200 84 250 76 300 L86 302 C94 254 104 206 112 168Z',`fill="#0f1628" stroke="${c}" stroke-width="1" opacity=".9" ${G}`)}${P('M136 166 C144 200 156 250 164 300 L154 302 C146 254 136 206 128 168Z',`fill="#0f1628" stroke="${c}" stroke-width="1" opacity=".9" ${G}`)}</g>`);
+  // B+: cape (front view: behind body)
+  const capeLen = 280 + (r-3)*5, capeD = `M94 96 C80 130 74 210 70 ${capeLen} Q95 ${capeLen+8} 120 ${capeLen+4} Q145 ${capeLen+8} 170 ${capeLen} C166 210 160 130 146 96Z`;
+  const capeEdge = r>=7 ? acc : c;
+  if(r>=3 && !back) out.push(`<g class="sway" style="transform-origin:120px 96px"><path d="${capeD}" fill="url(#${id}capeIn)"/><path d="${capeD}" fill="url(#${id}cape)" opacity=".75"/><path d="M94 96 C80 130 74 210 70 ${capeLen} M146 96 C160 130 166 210 170 ${capeLen}" fill="none" stroke="${capeEdge}" stroke-width="${r>=7?1.8:1.3}" opacity=".8" ${G}/></g>`);
+  // body
+  const strW = top==='STR' ? `transform="translate(120 0) scale(1.08 1) translate(-120 0)"` : '';
+  out.push(`<g class="breathe" style="transform-origin:120px 316px"><g ${strW}>`);
+  const leg = (m, dx=0) => { const L = d => mapD(d, x=>(m?240-x:x)+dx);
+    let s = `<path d="${L('M106 196 L104 288 L117 288 L119 196Z')}" fill="url(#${id}pants)" stroke="${ca(.35)}" stroke-width=".8"/>`;
+    s += r===0 ? `<path d="${L('M103 290 L118 290 L118 308 Q118 314 112 314 L99 314 Q97 310 101 306 L103 302Z')}" fill="#2a2018" stroke="${ca(.4)}" stroke-width=".8"/>`
+      : `<path d="${L('M103 282 L118 282 L119 306 Q119 314 112 315 L98 315 Q96 310 100 306 L103 300Z')}" fill="url(#${id}leather)" stroke="${ca(.6)}" stroke-width="1"/><path d="${L('M103 289 L118 289 M103 295 L118 295')}" stroke="${ca(.4)}" stroke-width=".8"/>`;
+    if(r>=4) s += `<path d="${L('M103 236 L119 236 L118 252 L111 256 L104 252Z')}" fill="url(#${id}steel)" stroke="url(#${id}gold)" stroke-width="1"/><circle cx="${L('111 245 0 0').split(' ')[0]}" cy="245" r="1.6" fill="url(#${id}gold)"/>`;
+    return s; };
+  out.push(leg(false, back?2:-2) + leg(true, 0));
+  const skL='M98 164 L91 248 Q104 253 118 248 L119 164Z', skR='M142 164 L149 248 Q136 253 122 248 L121 164Z';
+  out.push(`<path d="${skL}" fill="url(#${id}coat)"/><path d="${skR}" fill="url(#${id}coat)"/><path d="${skR}" fill="url(#${id}shade)" opacity=".6"/>
+    <path d="M100 200 C98 220 97 236 96 246 M112 196 C112 216 112 232 112 248 M140 200 C142 220 143 236 144 246 M128 196 C128 216 128 232 128 248" stroke="rgba(255,255,255,.06)" stroke-width="1.2" fill="none"/>
+    <path d="${skL}" fill="none" stroke="${c}" stroke-width="1.2" opacity=".8" ${G}/><path d="${skR}" fill="none" stroke="${c}" stroke-width="1.2" opacity=".8" ${G}/>`);
+  const torso='M92 98 C90 112 93 140 98 160 L142 160 C147 140 150 112 148 98 Q120 104 92 98Z';
+  out.push(`<path d="${torso}" fill="url(#${id}coat)"/><path d="M120 100 Q134 102 148 98 C150 112 147 140 142 160 L120 160Z" fill="url(#${id}shade)" opacity=".55"/>`);
+  if(!back){ out.push(`<path d="M110 98 L120 118 L130 98" stroke="${ca(.45)}" stroke-width="1" fill="none"/>`); if(r<2) out.push(`<path d="M108 126 Q120 130 132 126 M106 142 Q120 146 134 142" stroke="rgba(255,255,255,.06)" stroke-width="1.2" fill="none"/>`); }
+  else out.push(`<path d="M120 102 L120 160" stroke="${ca(.35)}" stroke-width="1" stroke-dasharray="3 2"/>`);
+  out.push(`<path d="${torso}" fill="none" stroke="${c}" stroke-width="1.4" opacity=".85" ${G}/>`);
+  // belt: rope (E) → leather with pouches (D+) → gold buckle (A+)
+  if(r===0) out.push(`<path d="M96 160 Q120 166 144 160 M96 163 Q120 169 144 163" stroke="#a8875e" stroke-width="1.6" fill="none"/>${back?'':'<path d="M112 164 L108 178 M114 164 L113 180" stroke="#a8875e" stroke-width="1.4"/>'}`);
+  else { out.push(`<path d="M96 159 L144 159 L144 167 L96 167Z" fill="url(#${id}leather)" stroke="${ca(.6)}" stroke-width=".9"/>`);
+    if(!back) out.push(`<path d="M115 157 L125 157 L125 169 L115 169Z" fill="${r>=4?`url(#${id}gold)`:`url(#${id}steel)`}" stroke="${c}" stroke-width="1"/><path d="M118 160 L122 160 L122 166 L118 166Z" fill="${c}" ${G}/>`);
+    out.push(P('M98 167 L106 167 L106 179 Q102 182 98 179Z',`fill="url(#${id}leather)" stroke="${ca(.45)}" stroke-width=".8"`), P('M134 167 L142 167 L142 177 Q138 180 134 177Z',`fill="url(#${id}leather)" stroke="${ca(.45)}" stroke-width=".8"`)); }
+  // back view cape over body
+  if(back && r>=3) out.push(`<g class="sway" style="transform-origin:120px 96px"><path d="${capeD}" fill="url(#${id}capeIn)"/><path d="${capeD}" fill="url(#${id}cape)" opacity=".7"/><path d="${capeD}" fill="none" stroke="${capeEdge}" stroke-width="1.3" opacity=".75" ${G}/>
+      <path d="M100 150 C98 200 96 250 94 ${capeLen} M120 150 L120 ${capeLen+2} M140 150 C142 200 144 250 146 ${capeLen}" stroke="${ca(.14)}" stroke-width="1.2" fill="none"/>
+      <path d="M120 226 L132 242 L120 262 L108 242Z" fill="none" stroke="${c}" stroke-width="1.4" ${G}/><path d="M120 234 L126 243 L120 254 L114 243Z" fill="${c}" opacity=".7" ${G}/></g>`);
+  // C+: chest plate (A+: engraved gold trim, SS+: glowing seams)
+  if(r>=2 && !back){ out.push(`<path d="M104 104 L136 104 L140 132 L120 143 L100 132Z" fill="url(#${id}steel)" stroke="${r>=4?`url(#${id}gold)`:c}" stroke-width="1.3"/><path d="M107 108 L133 108 L136 129 L120 138 L104 129Z" fill="none" stroke="${r>=4?`url(#${id}gold)`:'rgba(255,255,255,.16)'}" stroke-width=".8"/><path d="M120 113 L126 122 L120 131 L114 122Z" fill="${c}" class="glowp" ${G}/>`);
+    if(r>=7) out.push(`<path d="M104 120 L114 122 M136 120 L126 122 M120 104 L120 112" stroke="${acc}" stroke-width="1.2" class="glowp" ${G}/>`); }
+  if(top==='VIT' && !back) out.push(`<path class="glowp" d="M96 150 L108 150 L112 142 L117 158 L122 138 L126 150 L144 150" fill="none" stroke="#ff6b80" stroke-width="1.8" ${G}/>`);
+  // arms
+  const arm = m => { const A = d => mapD(d, x=>m?240-x:x);
+    let g = `<path d="${A('M92 100 C86 112 84 136 84 160 C84 176 84 190 86 202 L97 202 C97 188 97 172 99 158 C101 138 101 118 99 104Z')}" fill="url(#${id}coat)" stroke="${c}" stroke-width="1.2" ${G}/>`;
+    if(r>=1) g += `<path d="${A('M84 178 L98 178 L97 200 L85 200Z')}" fill="url(#${id}leather)" stroke="${ca(.6)}" stroke-width=".8"/><path d="${A('M84 184 L97 186 M84 190 L97 192 M85 196 L97 197')}" stroke="rgba(0,0,0,.4)" stroke-width=".8"/>`;
+    const gaunt = r>=5 || top==='STR';
+    g += gaunt ? `<path d="${A('M85 200 L98 200 L97 212 Q94 219 88 218 Q84 214 85 206Z')}" fill="url(#${id}steel)" stroke="${c}" stroke-width="1.1"/>`
+      : r===0 ? `<path d="${A('M86 200 L97 200 L96 212 Q93 218 88 217 Q85 213 86 206Z')}" fill="#3a3530" stroke="${ca(.5)}" stroke-width=".8"/><path d="${A('M86 204 L97 203 M86 208 L96 207')}" stroke="rgba(255,255,255,.12)" stroke-width=".8"/>`
+      : `<path d="${A('M85 200 L98 200 L97 212 Q94 219 88 218 Q84 214 85 206Z')}" fill="url(#${id}leather)" stroke="${ca(.55)}" stroke-width=".9"/>`;
+    return g; };
+  const bentArm = () => `<path d="${M('M142 102 C152 110 158 130 160 156 C161 164 156 168 150 164 C150 146 146 124 138 110Z')}" fill="url(#${id}coat)" stroke="${c}" stroke-width="1.2" ${G}/>
+    <path d="${M('M160 156 C158 148 152 138 146 130 L138 136 C144 146 148 156 150 164 Q156 168 160 156Z')}" fill="url(#${id}coat)" stroke="${c}" stroke-width="1.2" ${G}/>
+    ${r>=1?`<path d="${M('M157 152 L150 140 L142 144 L148 158Z')}" fill="url(#${id}leather)" stroke="${ca(.6)}" stroke-width=".8"/>`:''}`;
+  const bentHand = `<path d="${M('M138 126 C142 122 150 124 152 130 C153 136 148 140 142 139 C137 137 135 131 138 126Z')}" fill="url(#${id}steel)" stroke="${c}" stroke-width="1.1"/>`;
+  out.push(arm(false) + (W.bent ? (back ? arm(true) : bentArm()) : arm(true)));
+  // C+... B+: shoulder armour (A+ gold trim, S+ spikes)
+  if(r>=3){ const pl = m => { const A = d => mapD(d, x=>m?240-x:x);
+      return `<path d="${A('M86 104 Q90 90 108 94 L106 108 Q96 111 86 104Z')}" fill="url(#${id}steel)" stroke="${r>=4?`url(#${id}gold)`:c}" stroke-width="1.2"/><path d="${A('M87 111 Q92 100 106 103 L105 113 Q95 116 87 111Z')}" fill="url(#${id}steel)" stroke="${ca(.8)}" stroke-width=".9"/>${r>=5?`<path d="${A('M90 98 L80 82 L96 94Z')}" fill="${acc}" ${G}/>`:''}${r>=7?`<path d="${A('M90 104 Q98 100 106 101')}" stroke="${acc}" stroke-width="1.2" class="glowp" ${G}/>`:''}`; };
+    out.push(pl(false) + pl(true)); }
+  // collar
+  out.push(`<path d="M102 84 C96 90 92 96 91 100 Q120 108 149 100 C148 96 144 90 138 84Z" fill="url(#${id}coat)" stroke="${ca(.6)}" stroke-width="1"/>`);
+  out.push(`</g>`);
+  // weapon (front: in hands; back: mirrored)
+  out.push(back ? MS(W.heldBack || W.held) : W.held);
+  if(W.bent && !back) out.push(bentHand);
+  const gl = `fill="${r>=5||top==='STR'?`url(#${id}steel)`:r===0?'#3a3530':`url(#${id}leather)`}" stroke="${ca(.6)}" stroke-width=".8"`;
+  if(W.grip==='R2') out.push(MS(`<path d="M146 204 Q152 200 158 204 L158 214 Q152 218 146 214Z" ${gl}/><path d="M82 204 Q88 200 94 204 L94 214 Q88 218 82 214Z" ${gl}/>`));
+  if(W.grip==='R') out.push(MS(`<path d="M146 206 Q152 202 158 206 L158 214 Q152 218 146 214Z" fill="${r>=5||top==='STR'?`url(#${id}steel)`:r===0?'#3a3530':`url(#${id}leather)`}" stroke="${ca(.6)}" stroke-width=".8"/>`));
+  if(top==='VIT' && !back) out.push(`<path d="M82 196 Q88 192 94 196 L94 206 Q88 210 82 206Z" fill="${r>=5?`url(#${id}steel)`:`url(#${id}leather)`}" opacity="0"/>`);
+  // head
+  out.push(head(r, K, back, top));
+  out.push(`</g>`);
+  // S+: floating armour fragments
+  if(r>=6) out.push(`<g class="spin" style="transform-origin:120px 140px;animation-duration:16s">${[0,72,144,216,288].slice(0, r>=7?5:3).map(a=>{ const x=120+Math.cos(a*Math.PI/180)*72, y=140+Math.sin(a*Math.PI/180)*84; return `<path d="M${f1(x-6)} ${f1(y-4)} L${f1(x+6)} ${f1(y-6)} L${f1(x+5)} ${f1(y+5)} L${f1(x-5)} ${f1(y+6)}Z" fill="url(#${id}steel)" stroke="${acc}" stroke-width="1" ${G}/>`; }).join('')}</g>`);
+  // INT: orbiting runes (top-stat feature)
+  if(top==='INT') out.push(`<g class="spin" style="transform-origin:120px 58px;animation-duration:12s" fill="${c}" font-size="10" font-weight="700" text-anchor="middle" ${G}><text x="120" y="6">ᚠ</text><text x="172" y="62">ᚱ</text><text x="120" y="116">ᛟ</text><text x="68" y="62">ᛉ</text></g>`);
+  return out.join('');
+}
+const svg = (r, top, second, mode='front', vb='0 0 240 340') => { const id='a'+(UID++), R=RK[r]; return `<svg viewBox="${vb}"><defs>${defs(id, R.rgb, R.acc||`rgb(${R.rgb})`)}</defs>${figure(mode, r, top, second, id)}</svg>`; };
+const weaponSVG = (r, top) => { const id='w'+(UID++), R=RK[r], c=`rgb(${R.rgb})`, K={c, ca:a=>`rgba(${R.rgb},${a})`, acc:R.acc||c, id, G:`filter="url(#${id}g)"`}; const W = WEAPON_FN[top](r, K); const [x,y,w,h] = W.box;
+  return `<svg viewBox="${x} ${y} ${w} ${h}"><defs>${defs(id, R.rgb, K.acc)}</defs>${W.behind||''}${W.held}</svg>`; };
+
+return { draw: (mode, r, top, second) => { const id='av'+(UID++), R=RK[r]; return `<svg viewBox="-6 -4 252 336" class="avsvg" aria-label="Your player avatar"><defs>${defs(id, R.rgb, R.acc||`rgb(${R.rgb})`)}</defs><g class="avflip">${figure(mode, r, top, second, id)}</g></svg>`; } };
+})();
 /* ---------- avatar ---------- */
-function topStat(){
-  let best=null, v=14.99;
-  for(const k in state.stats) if(state.stats[k]>v){ v=state.stats[k]; best=k; }
-  return best;
+/* Weapon = highest stat, panel effect = second-highest. A new stat only takes over when it leads by 2+ points (no flicker). */
+const STAT_ORDER = ['STR','AGI','VIT','INT','SEN'];
+function avatarBuild(){
+  const st = state.stats, rank = k => STAT_ORDER.slice().sort((a,b)=>st[b]-st[a] || STAT_ORDER.indexOf(a)-STAT_ORDER.indexOf(b));
+  const sorted = rank();
+  let top = state.avTop && st[state.avTop]!=null ? state.avTop : sorted[0];
+  if(st[sorted[0]] >= st[top] + 2) top = sorted[0];
+  const rest = sorted.filter(k=>k!==top);
+  let second = state.avSecond && state.avSecond!==top && st[state.avSecond]!=null ? state.avSecond : rest[0];
+  if(st[rest[0]] >= st[second] + 2) second = rest[0];
+  if(state.avTop!==top || state.avSecond!==second){ state.avTop = top; state.avSecond = second; save(); }
+  return {top, second};
 }
 function condition(){
   const net = tempMods().reduce((a,m)=>a+m.pct,0);
@@ -1372,76 +1903,28 @@ function condition(){
   if(net>=10)       return {k:'strong',  label:'EMPOWERED', color:'var(--good)', net};
   return {k:'steady', label:'STEADY', color:'var(--glow)', net};
 }
+const topStat = () => avatarBuild().top;   // used by older code paths
+let avMode = 'front';
 function avatarSVG(){
-  const ri = rankIdx(state.level), c = `rgb(${RANKS[ri].rgb})`, top = topStat(), cond = condition();
-  const hurt = cond.k==='penalty' || cond.k==='weak', slump = cond.k==='penalty' || cond.k==='idle';
-  const aura = hurt ? '#ff4d6a' : c;
-  const auraOp = cond.k==='idle' ? .12 : clamp(.4 + cond.net/80, .2, .85);
-  const eye = hurt ? '#ff6b80' : (top==='SEN' ? '#ffffff' : c);
-  const body = top==='STR'
-    ? 'M100 84 C68 86 50 100 46 128 L42 232 L158 232 L154 128 C150 100 132 86 100 84Z'
-    : top==='AGI'
-    ? 'M100 84 C78 86 64 102 61 128 L54 232 L146 232 L139 128 C136 102 122 86 100 84Z'
-    : 'M100 84 C74 86 58 100 55 128 L48 232 L152 232 L145 128 C142 100 126 86 100 84Z';
-  const g = [];
-  // back layer: aura, flames, halos
-  g.push(`<ellipse class="av-aura ${hurt?'av-flicker':''}" cx="100" cy="135" rx="92" ry="118" fill="url(#avAura)" opacity="${auraOp}"/>`);
-  if(ri>=5) g.push(`<g class="av-flame" opacity=".55" fill="none" stroke="${aura}" stroke-width="2">
-      <path d="M40 236 C30 190 46 160 38 120 C58 150 56 180 66 200"/><path d="M160 236 C170 190 154 160 162 120 C142 150 144 180 134 200"/>
-      <path d="M58 236 C52 206 62 188 58 160 C70 182 70 204 76 218"/><path d="M142 236 C148 206 138 188 142 160 C130 182 130 204 124 218"/></g>`);
-  if(ri>=5) g.push(`<circle cx="100" cy="58" r="34" fill="none" stroke="${c}" stroke-width="2" opacity=".75" filter="url(#avGlow)"/>`);
-  if(ri>=7) g.push(`<g class="av-orbit"><ellipse cx="100" cy="58" rx="46" ry="14" fill="none" stroke="${c}" stroke-width="1.5" opacity=".6"/></g>`);
-  if(ri>=6) g.push(`<g class="av-orbit2">${[0,60,120,180,240,300].map(a=>{const x=100+88*Math.cos(a*Math.PI/180), y=135+100*Math.sin(a*Math.PI/180); return `<circle cx="${r1(x)}" cy="${r1(y)}" r="2.6" fill="${c}" filter="url(#avGlow)"/>`;}).join('')}</g>`);
-  if(skill('ascended')) g.push(`<g class="av-orbit2"><circle cx="100" cy="135" r="104" fill="none" stroke="url(#avAsc)" stroke-width="3" stroke-dasharray="14 8" filter="url(#avGlow)"/></g>`);
-  g.push(`<ellipse cx="100" cy="236" rx="${ri>=3?70:58}" ry="8" fill="none" stroke="${c}" stroke-width="1.5" opacity=".45"/>`);
-  // figure
-  const fig = [];
-  if(top==='AGI') fig.push(`<g class="av-sway" fill="none" stroke="${c}" stroke-width="2" opacity=".8"><path d="M54 232 Q34 236 18 222"/><path d="M146 232 Q166 238 184 226"/><path d="M60 214 Q40 222 28 210"/></g>`);
-  fig.push(`<path d="${body}" fill="#050a14" stroke="${c}" stroke-width="2.4" filter="url(#avGlow)"/>`);
-  if(ri>=3) fig.push(`<path d="M70 100 L58 232 M130 100 L142 232" stroke="${c}" stroke-width="1.4" opacity=".55"/>`);
-  if(ri>=1) fig.push(`<g fill="#071226" stroke="${c}" stroke-width="2"><path d="M60 106 Q70 92 86 96 L83 112 Q70 110 60 106Z"/><path d="M140 106 Q130 92 114 96 L117 112 Q130 110 140 106Z"/>
-      ${ri>=4?`<path d="M64 100 L54 88 L70 96Z M136 100 L146 88 L130 96Z" fill="${c}"/>`:''}</g>`);
-  if(ri>=2) fig.push(`<rect x="66" y="152" width="68" height="6" rx="2" fill="#071226" stroke="${c}" stroke-width="1.6"/>
-      <path d="M136 158 L146 196 L141 197 Z" fill="${c}" opacity=".85"/><path d="M131 158 L142 156" stroke="${c}" stroke-width="2"/>
-      ${ri>=4?`<path d="M64 158 L54 196 L59 197 Z" fill="${c}" opacity=".85"/><path d="M69 158 L58 156" stroke="${c}" stroke-width="2"/>`:''}`);
-  if(ri>=3) fig.push(`<path d="M100 118 L108 129 L100 140 L92 129Z" fill="${c}" opacity=".85" filter="url(#avGlow)"/>`);
-  if(top==='STR') fig.push(`<g fill="#071226" stroke="${c}" stroke-width="2"><rect x="38" y="168" width="18" height="20" rx="4"/><rect x="144" y="168" width="18" height="20" rx="4"/></g>`);
-  if(state.cosmetic){ const cc = `rgb(${CHAPTERS[state.cosmetic-1].rgb})`, G = `filter="url(#avGlow)"`;
+  const ri = rankIdx(state.level), cond = condition(), {top, second} = avatarBuild();
+  const hurt = cond.k==='penalty' || cond.k==='weak', dim = cond.k==='idle' || cond.k==='penalty';
+  let cos = '';
+  if(state.cosmetic && avMode==='front'){ const cc = `rgb(${CHAPTERS[state.cosmetic-1].rgb})`, G = `filter="url(#cosGlow)"`;
     const COS = {
       1:`<path d="M152 70 L160 82 L152 94 L144 82Z" fill="${cc}" ${G} class="av-beat"/>`,
       2:`<g fill="${cc}" ${G} class="av-beat"><circle cx="70" cy="60" r="2.4"/><circle cx="132" cy="48" r="2"/><circle cx="148" cy="74" r="2.6"/></g>`,
       3:`<path d="M62 120 C74 132 64 146 76 158 C84 168 74 182 82 196 M138 120 C126 132 136 146 124 158 C116 168 126 182 118 196" fill="none" stroke="${cc}" stroke-width="2" ${G}/>`,
-      4:`<path d="M76 116 L124 116 L118 150 L82 150 Z M84 126 L116 126 M86 138 L114 138" fill="none" stroke="${cc}" stroke-width="2" ${G}/>`,
+      4:`<path d="M84 118 L116 118 L112 142 L88 142 Z M88 126 L112 126" fill="none" stroke="${cc}" stroke-width="1.6" ${G}/>`,
       5:`<g fill="none" stroke="${cc}" stroke-width="2" ${G}><path d="M84 168 Q100 156 116 168 Q100 180 84 168Z"/><circle cx="100" cy="168" r="3" fill="${cc}"/></g>`,
       6:`<path d="M80 40 L100 52 L120 40 M76 58 L100 66 L124 58 M100 30 L100 70" fill="none" stroke="${cc}" stroke-width="1.3" opacity=".8" ${G}/>`,
       7:`<path d="M104 2 L94 18 L102 18 L96 32 L110 14 L102 14 Z" fill="${cc}" ${G}/>`,
       8:`<path d="M58 104 L50 88 L64 98 L62 82 L72 98 M142 104 L150 88 L136 98 L138 82 L128 98" fill="none" stroke="${cc}" stroke-width="2" ${G}/>`,
-      9:`<path d="M48 70 L152 200 M152 70 L48 200" stroke="${cc}" stroke-width="3" opacity=".75" ${G}/>`,
+      9:`<path d="M48 70 L152 200 M152 70 L48 200" stroke="${cc}" stroke-width="3" opacity=".55" ${G}/>`,
       10:`<g fill="none" stroke="${cc}" stroke-width="2" opacity=".85" ${G}><path d="M62 110 C30 90 14 70 8 40 C30 56 44 64 66 80"/><path d="M138 110 C170 90 186 70 192 40 C170 56 156 64 134 80"/><path d="M60 124 C34 116 18 104 10 84 M140 124 C166 116 182 104 190 84"/></g>`,
     };
-    (state.cosmetic===9||state.cosmetic===10 ? g : fig).push(COS[state.cosmetic]||''); }
-  if(top==='VIT') fig.push(`<path class="av-beat\" d="M74 140 L88 140 L93 130 L99 150 L105 134 L110 140 L126 140" fill="none" stroke="#ff6b80" stroke-width="2.2" filter="url(#avGlow)"/>`);
-  // head
-  const head = [];
-  head.push(`<path d="M100 30 C79 30 67 48 69 72 C71 89 84 99 100 101 C116 99 129 89 131 72 C133 48 121 30 100 30Z" fill="#050a14" stroke="${c}" stroke-width="2.4" filter="url(#avGlow)"/>`);
-  head.push(`<ellipse cx="100" cy="72" rx="18" ry="16" fill="#000"/>`);
-  head.push(`<g fill="${eye}" filter="url(#avGlow)" opacity="${slump?.45:1}"><ellipse cx="92.5" cy="71" rx="3.4" ry="${slump?1:1.9}"/><ellipse cx="107.5" cy="71" rx="3.4" ry="${slump?1:1.9}"/></g>`);
-  if(top==='SEN') head.push(`<path d="M100 52 L103 57 L100 62 L97 57Z" fill="#fff" filter="url(#avGlow)"/>`);
-  if(ri>=4 && ri<8) head.push(`<path d="M100 31 L93 15 L100 22 L107 15Z" fill="${c}" filter="url(#avGlow)"/>`);
-  if(ri>=8) head.push(`<path d="M80 38 L85 20 L93 32 L100 14 L107 32 L115 20 L120 38" fill="none" stroke="${c}" stroke-width="2.4" filter="url(#avGlow)"/>`);
-  if(top==='INT') g.push(`<g class="av-orbit" fill="${c}" font-size="13" font-weight="700" text-anchor="middle" filter="url(#avGlow)">
-      <text x="100" y="12">ᚠ</text><text x="158" y="76">ᚱ</text><text x="100" y="140">ᛟ</text><text x="42" y="76">ᛉ</text></g>`);
-  const headT = slump ? 'transform="rotate(14 100 100) translate(0 6)"' : '';
-  const figT  = slump ? 'transform="translate(0 6)"' : '';
-  return `<svg viewBox="0 0 200 250" aria-label="Your player avatar">
-    <defs><radialGradient id="avAura" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="${aura}" stop-opacity=".9"/><stop offset=".6" stop-color="${aura}" stop-opacity=".25"/><stop offset="1" stop-color="${aura}" stop-opacity="0"/></radialGradient>
-    <linearGradient id="avAsc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4dffb5"/><stop offset=".25" stop-color="#4fc3ff"/><stop offset=".5" stop-color="#b48cff"/><stop offset=".75" stop-color="#ff5577"/><stop offset="1" stop-color="#ffd166"/></linearGradient>
-    <filter id="avGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-    ${g.join('')}
-    <g class="${slump?'':'av-breathe'}" ${slump?'opacity=".75"':''}><g ${figT}>${fig.join('')}</g><g ${headT}>${head.join('')}</g></g>
-  </svg>`;
+    cos = `<svg viewBox="-6 -4 252 336" class="avsvg avcos"><defs><filter id="cosGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g transform="translate(120 175) scale(1.15) translate(-100 -135)">${COS[state.cosmetic]||''}</g></svg>`; }
+  return `<div class="av5 ${hurt?'hurt':''} ${dim?'dim':''}">${AV.draw(avMode, ri, top, second)}${cos}</div>`;
 }
-
 /* ---------- views ---------- */
 let tab = 'status';
 function render(){
@@ -1467,7 +1950,8 @@ function vStatus(){
   ${(!standalone && isIOS)?`<div class="hint">Install: tap <b>Share</b> → <b>Add to Home Screen</b> to open this like an app.</div>`:''}
   <div class="panel">
     <div class="who"><div class="name">${esc(s.name||'Player')}</div></div>
-    <div class="avwrap">${avatarSVG()}</div>
+    <div class="avwrap" id="avStage">${avatarSVG()}</div>
+    <div class="center"><button class="btn sm" id="avFlip" style="margin:-2px 0 8px">⟲ ${avMode==='front'?'SEE BACK':'SEE FRONT'}</button></div>
     <div class="who">
       <div class="title">${title?esc(title.name):''}</div>
       <div class="rank">${RANKS[ri].r}-RANK</div>
@@ -1988,7 +2472,7 @@ function vRecords(){
     + section('rc_titles', 'COSMETICS & TITLES', `${state.titles.length} earned`, titles)
     + `<div class="center small muted" style="margin:6px 0 10px">Ascend · ${VERSION}</div>`;
 }
-const VERSION = 'v12.2';
+const VERSION = 'v13';
 let prevTab = 'status';
 function vSettings(){
   const earnedTitles = TITLES.filter(t=>state.titles.includes(t.id)), g = state.wtGoal || {};
@@ -2080,6 +2564,7 @@ document.addEventListener('click', ev=>{
   if(ds.delq){ b.closest('.qrow').remove(); return; }
   switch(b.id){
     case 'clearPen': return clearPenalty();
+    case 'avFlip': return flipAvatar();
     case 'rateInfo': return showRateInfo();
     case 'wtHide': state.wtHide = !state.wtHide; save(); render(); return;
     case 'saveWtGoal': { const v = parseFloat(($('#wtTarget').value||'').replace(',','.')); state.wtGoal = state.wtGoal || {dir:'lose'};
@@ -2114,6 +2599,15 @@ document.addEventListener('click', ev=>{
         state=fresh(); save(); tab='status'; setTimeout(awaken,50); return true; }}); return;
   }
 });
+function flipAvatar(){
+  const box = document.querySelector('.av5'); if(!box){ avMode = avMode==='front'?'back':'front'; render(); return; }
+  box.classList.add('squash');
+  setTimeout(()=>{ avMode = avMode==='front' ? 'back' : 'front'; render(); const b2 = document.querySelector('.av5'); if(b2){ b2.classList.add('squash'); requestAnimationFrame(()=>requestAnimationFrame(()=>b2.classList.remove('squash'))); } }, 160);
+}
+{ let ax = null;
+  document.addEventListener('pointerdown', e=>{ ax = e.target.closest && e.target.closest('#avStage') ? e.clientX : null; });
+  document.addEventListener('pointerup', e=>{ if(ax!==null && Math.abs(e.clientX-ax)>40) flipAvatar(); ax = null; });
+  document.addEventListener('pointercancel', ()=>{ ax = null; }); }
 function checkUnlocks(){
   SKILLS.forEach(k=>{ const key='sk_'+k.id; if(skill(k.id) && !state[key]){ state[key]=true;
     notify(`Skill unlocked: <b>${esc(k.name)}</b><br><span class="muted small">${esc(k.desc)}</span>`, {title:'SKILL'}); } });
@@ -2155,6 +2649,9 @@ else if(state.upgradedV3){ delete state.upgradedV3; save(); }
 if(state.upgradedV4 && state.setupDone){ delete state.upgradedV4; save();
   notify('<b>Daily Quests expanded.</b><br><br>Your daily focus now rotates through Exercise, Steps, Mind & Wellbeing and Fasting (only what you actually do). Targets never go above the soft cap.<br><br>New: <b>Playing with pets</b> and the <b>Good Company</b> buff.', {title:'SYSTEM UPDATE', ok:'GOT IT'}); }
 else if(state.upgradedV4){ delete state.upgradedV4; save(); }
+if(!state.seenAvatarV13 && state.setupDone){ state.seenAvatarV13 = true; save();
+  notify(`<b>Your avatar has been redrawn.</b><br><br>Your <b>highest stat</b> picks your weapon (Sense gets a spirit fox) and your <b>second-highest</b> adds an effect around you. Every rank changes your armour, weapon, headpiece and effects.<br><br>Tap <b>See back</b> or swipe on your avatar to turn around.`, {title:'SYSTEM UPDATE', ok:'GOT IT'}); }
+else if(!state.seenAvatarV13){ state.seenAvatarV13 = true; }
 if(state.upgradedV8 && state.setupDone){ delete state.upgradedV8; delete state.upgradedV7; delete state.upgradedV6; save();
   notify(`<b>Ascend ${VERSION}</b><br><br><b>30+ new activities</b>: running, swimming, weightlifting, climbing, sauna, breathwork and more. Exercise is now split into <b>Strength & Mobility</b> and <b>Cardio & Sports</b>, and Mind & Wellbeing into <b>Mind</b> and <b>Wellbeing</b>. New ones start off: pick them in <b>⚙ Settings → Choose activities</b>.<br><br><b>Weight tracker</b> (optional) · <b>Daily Quest targets</b> now come from your rank · <b>buffs</b> stack with diminishing returns instead of a hard cap · bosses: <b>opening strike</b> and <b>Overkill</b> · fasting countdowns · Records is now <b>Insights</b> · settings live behind the <b>⚙</b>.`, {title:'SYSTEM UPDATE', ok:'GOT IT'}); }
 else if(state.upgradedV8){ delete state.upgradedV8; save(); }

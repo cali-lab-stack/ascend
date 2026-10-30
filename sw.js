@@ -1,5 +1,5 @@
 // Offline support. Bump VERSION whenever you change index.html so phones pick up the update.
-const VERSION = 'ascend-v12-2';
+const VERSION = 'ascend-v13';
 const CORE = ['./', './index.html', './manifest.json', './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', e => {
