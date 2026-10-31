@@ -1237,6 +1237,14 @@ function scopeHit(scope, g, id){
   return scope===g;
 }
 const SCOPE_NAMES = {exercise:'exercise', str:'strength', cardio:'cardio', mind:'mind', sleep:'sleep', fast:'fasting', agi:'cardio & steps', sen:'sleep & fasting', 'id:meditate':'meditation'};
+/* Hydrated: on while you're on pace with water (checkpoints below); pauses if you fall behind; 8 glasses locks it on. */
+const WATER_PACE = [[10,2],[13,4],[16,6],[19,8]];   // [hour, glasses needed by then]
+function hydratedOn(glasses, when=new Date()){
+  if(glasses >= 8) return true;
+  const h = when.getHours() + when.getMinutes()/60;
+  const need = WATER_PACE.reduce((n,[hr,g])=> h >= hr ? g : n, 2);
+  return glasses >= need;
+}
 function tempMods(){
   const t = dayKey(), d = day(t), yk = addDays(t,-1), y = state.days[yk];
   const m = [], add = (name,pct,scope)=>m.push({name,pct,scope,buff:pct>=0});
@@ -1249,7 +1257,7 @@ function tempMods(){
   if(count(d,'alcohol')>=3) add('Intoxicated', -50, 'all');
   if(y && count(y,'alcohol')>=10 && !yTrans) add('Hangover', -25, 'all');
   if(state.penalty) add('Penalty: unfinished business', -20, 'all');
-  if(units(d,'water')>=8) add('Hydrated', 5, 'all');
+  if(hydratedOn(units(d,'water'))) add('Hydrated', 5, 'all');
   if(state.victorUntil && t<=state.victorUntil) add("Victor's Spirit", 10, 'all');
   if(state.fast && fastHours()>=12) add('Fasted Fighter', skill('endurance')?25:15, 'exercise');
   const exIds = new Set(d.log.filter(e=>isEx(A[e.id])).map(e=>e.id)), ath = skill('athlete');
@@ -2607,7 +2615,7 @@ const BUFF_INFO = [
   {n:'Sugar Crash', t:'debuff', when:'5+ sweets or sugary drinks today', eff:'−10% all XP for the rest of today'},
   {n:"Smoker's Lungs", t:'debuff', when:'A cigarette, vape or cannabis logged today', eff:'−15% exercise XP for the rest of today'},
   {n:'Couch Potato', t:'debuff', when:'Under 25 movement yesterday (see What counts as movement)', eff:'−5% all XP today'},
-  {n:'Hydrated', t:'buff', when:'8+ glasses of water today', eff:'+5% all XP for the rest of today'},
+  {n:'Hydrated', t:'buff', when:'On pace with water: 2 glasses by 10 am · 4 by 1 pm · 6 by 4 pm · 8 by 7 pm (2 glasses switches it on before 10 am). Pauses if you fall behind until you catch up. 8 glasses locks it on for the rest of the day.', eff:'+5% all XP while on pace'},
   {n:"Victor's Spirit", t:'buff', when:'You defeated a Weekly Boss', eff:'+10% all XP for 3 days'},
   {n:'Brain Fog', t:'debuff', when:'2+ hours of doomscrolling today', eff:'−15% Mind & Wellbeing XP for the rest of today'},
 ];
@@ -2904,7 +2912,7 @@ function vRecords(){
     + section('rc_titles', 'COSMETICS & TITLES', `${state.titles.length} earned`, titles)
     + `<div class="center small muted" style="margin:6px 0 10px">Ascend · ${VERSION}</div>`;
 }
-const VERSION = 'v17';
+const VERSION = 'v18';
 let prevTab = 'status';
 function vSettings(){
   const earnedTitles = TITLES.filter(t=>state.titles.includes(t.id)), g = state.wtGoal || {};
