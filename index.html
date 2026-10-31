@@ -483,7 +483,7 @@ const ACTS = [
   {id:'burpees',  cat:'cardio', g:'cardio', type:'count', label:'Burpees',        unit:'reps',  rate:1.5, step:10,  cap:60, s:{AGI:.3, STR:.2}},
   {id:'climbers', cat:'cardio', g:'cardio', type:'count', label:'Mountain climbers', unit:'reps', rate:.2, step:20, cap:30, s:{AGI:.4, STR:.1}, note:'Count each leg.'},
   {id:'jacks',    cat:'cardio', g:'cardio', type:'count', label:'Jumping jacks',  unit:'reps',  rate:.2,  step:50,  cap:30, s:{AGI:.4}},
-  {id:'jumprope', cat:'cardio', g:'cardio', type:'count', label:'Jump rope',      unit:'jumps', rate:.03, step:100, cap:60, s:{AGI:.5, VIT:.1}},
+  {id:'jumprope', cat:'cardio', g:'cardio', type:'count', label:'Jump rope',      unit:'jumps', rate:.13, step:50, cap:75, s:{AGI:.5, VIT:.1}},
   // STEPS · FASTING
   {id:'steps',    cat:'steps', g:'steps', type:'tier', label:'Steps', s:{AGI:.3, VIT:.2},
      tiers:[{l:'5k',v:5000,xp:10},{l:'7.5k',v:7500,xp:20},{l:'10k',v:10000,xp:35},{l:'12.5k',v:12500,xp:45},{l:'15k+',v:15000,xp:55}]},
@@ -1415,7 +1415,7 @@ function questTarget(id, k, ri=rankIdx(state.level)){
 }
 function ensureQuest(k=dayKey(), exclude){
   const d = day(k);
-  if(d.quest && A[d.quest.id] && on(d.quest.id)) return d.quest;
+  if(d.quest && A[d.quest.id]) return d.quest;   // today's quest stays until tomorrow, even if its activity is switched off
   let pool = questPool(); if(exclude && pool.length>1) pool = pool.filter(id=>id!==exclude);
   if(!pool.length){ d.quest = null; return null; }
   const done = id => recentAvg(id,k) > 0;
@@ -2622,7 +2622,7 @@ function vCodex(){
     <div class="cxp"><b>Movement</b> is the plain XP your <b>steps</b> and <b>exercises</b> are worth, before any buffs, debuffs, perks or skill bonuses. If yesterday's movement was under <b>${MOVE_MIN}</b>, you start today with <b>Couch Potato</b> (−5% all XP). Today's movement protects tomorrow.<br><br>
     <b>Counts:</b> your step tier (5k = 10 · 7.5k = 20 · 10k = 35 · 12.5k = 45 · 15k+ = 55) and every activity in <b>Strength & Mobility</b> and <b>Cardio & Sports</b> at its normal rate (past the soft cap at the reduced rate).<br>
     <b>Doesn't count:</b> Mind, Wellbeing, Nutrition, sleep, fasting, water and weight.<br><br>
-    <b>Any one of these is enough:</b> 25 push-ups · 50 squats, sit-ups or lunges · 13 pull-ups · 17 burpees or dips · 125 jumping jacks · ~4 min plank · ~2 min 50 sec dead hang · 13 min running · 17 min cycling or weightlifting · 10k steps.<br>
+    <b>Any one of these is enough:</b> 25 push-ups · 50 squats, sit-ups or lunges · 13 pull-ups · 17 burpees or dips · 125 jumping jacks · ~190 jump rope jumps · ~4 min plank · ~2 min 50 sec dead hang · 13 min running · 17 min cycling or weightlifting · 10k steps.<br>
     <b>Mixes add up:</b> 10 push-ups + 20 squats + a 1-min plank = 26.<br>
     <span class="muted small">Transcendent stops it carrying over to the next day.</span></div>
     <div class="cxp tiny">Skill effects (Titan, Deep Work, Fortified, etc.) are explained in the Skill Tree.</div>`;
@@ -2672,14 +2672,14 @@ function actSummary(a){
 function vSetup(){
   const first = !state.setupDone;
   return `<div class="panel"><span class="ptitle">CHOOSE YOUR ACTIVITIES</span>
-    ${first?'':'<button class="btn sm" data-goto="settings" style="margin-bottom:10px">← SETTINGS</button>'}
+    ${first?'':'<div class="row between" style="margin-bottom:10px"><button class="btn sm" data-goto="settings">← DONE</button><span class="tiny muted">Changes save automatically</span></div>'}
     <div class="small center" style="color:#c9dbec">Track what matters to you — the habits you want to build and the things you don't want to skip. You can change this anytime in ⚙ Settings.</div>
     ${orderedCats().map(c=>{ const acts = orderedActs(c.id), n = acts.filter(a=>on(a.id)).length;
       return `<h3 class="row between" style="margin-bottom:0"><span>${c.label}</span><span class="tiny" data-cnt="${c.id}" style="letter-spacing:.06em">${n} selected</span></h3>
       <div class="tiny muted" style="margin:2px 0 4px">Choose what matters most</div>
       ${acts.map(a=>`<label class="chk"><input type="checkbox" data-en="${a.id}" data-cat="${c.id}" ${on(a.id)?'checked':''}>
       <div><b>${esc(a.label)}</b><div class="tiny muted">${actSummary(a)}</div></div></label>`).join('')}`; }).join('')}
-    <button class="btn full" style="margin-top:16px" id="saveSetup">SAVE ACTIVITIES</button>
+    ${first?'<button class="btn full" style="margin-top:16px" id="saveSetup">SAVE ACTIVITIES</button>':'<button class="btn full" style="margin-top:16px" data-goto="settings">DONE</button>'}
   </div>`;
 }
 
@@ -2894,7 +2894,7 @@ function vRecords(){
     + section('rc_titles', 'COSMETICS & TITLES', `${state.titles.length} earned`, titles)
     + `<div class="center small muted" style="margin:6px 0 10px">Ascend · ${VERSION}</div>`;
 }
-const VERSION = 'v15';
+const VERSION = 'v16';
 let prevTab = 'status';
 function vSettings(){
   const earnedTitles = TITLES.filter(t=>state.titles.includes(t.id)), g = state.wtGoal || {};
@@ -2910,7 +2910,7 @@ function vSettings(){
   const rot = `<div class="small muted" style="margin:10px 0 4px">What can be your daily focus. Groups take turns; only activities you've done in the last 2 weeks are used. Targets come from your rank (${RANKS[rankIdx(state.level)].r}-Rank now).</div>
     ${QUEST_CATS.map(c=>{ const ids = questEligible().filter(id=>qgroup(A[id])===c); if(!ids.length) return '';
       return `<div class="tiny muted" style="margin-top:10px;letter-spacing:.16em;font-weight:700">${QUEST_GROUP_LABEL[c]}</div>` + ids.map(id=>`<label class="chk"><input type="checkbox" data-pool="${id}" ${questPool().includes(id)?'checked':''}><div><b>${esc(A[id].label)}</b><div class="tiny muted">target ${questShow(id, questTarget(id,dayKey()).target)} ${questUnit(id)}</div></div></label>`).join(''); }).join('')}
-    <button class="btn sm" id="savePool" style="margin-top:10px">SAVE ROTATION</button>`;
+    <div class="tiny muted" style="margin-top:8px">Changes save automatically and apply from tomorrow's quest.</div>`;
   const rest = `<div class="small muted" style="margin:10px 0 8px">With the Deep Rest skill (SEN 25) you get one rest day per week. Declare it on the Quests tab, or let it cover a missed quest automatically.</div>
     <button class="btn full sm" id="autoRest">AUTO-USE REST DAY: ${state.autoRest!==false?'ON':'OFF'}</button>`;
   const weight = `<div class="small muted" style="margin:10px 0 8px">${on('weight')?'Weight tracking is on.':'Weight tracking is off. Turn it on in Choose activities.'} XP rewards weighing in, never the number.</div>
@@ -2948,9 +2948,16 @@ function questEditRow(q, linkable){
 
 /* ---------- events ---------- */
 document.addEventListener('change', ev=>{
-  const c = ev.target; if(!c.dataset || !c.dataset.cat || !c.dataset.en) return;
+  const c = ev.target; if(!c.dataset) return;
+  if(c.dataset.pool){                                   // Daily Quest rotation: saves instantly, applies from tomorrow's quest
+    const ids = [...document.querySelectorAll('[data-pool]')].filter(x=>x.checked).map(x=>x.dataset.pool);
+    if(!ids.length){ c.checked = true; toast('Keep at least one activity in the rotation', true); return; }
+    state.questPool = ids; save(); toast('Saved'); return;
+  }
+  if(!c.dataset.cat || !c.dataset.en) return;
   const n = [...document.querySelectorAll(`[data-cat="${c.dataset.cat}"]`)].filter(x=>x.checked).length, el = document.querySelector(`[data-cnt="${c.dataset.cat}"]`);
   if(el) el.textContent = `${n} selected`;
+  if(state.setupDone){ state.enabled[c.dataset.en] = c.checked; save(); toast(`Saved · ${A[c.dataset.en].label} ${c.checked?'on':'off'}`); }
 });
 document.addEventListener('click', ev=>{
   const b = ev.target.closest('button'); if(!b) return;
